@@ -1,0 +1,45 @@
+# Dependency & Environment
+/node_modules
+/vendor
+.env
+.env.backup
+.env.production
+/auth.json
+
+# Public & Asset Build
+/public/build
+/public/hot
+/public/storage
+
+# Storage Runtime & Framework Caches
+/storage/*.key
+/storage/pail
+/storage/app/*
+!/storage/app/.gitignore
+/storage/app/public/*
+!/storage/app/public/.gitignore
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+*.log
+
+# Editor & OS Artifacts
+.DS_Store
+Thumbs.db
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+.phpactor.json
+.phpunit.result.cache
+/.phpunit.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
