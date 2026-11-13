@@ -35,15 +35,30 @@
         </div>
     </div>
 
-    <!-- Alert Notifikasi -->
+    <!-- Alert Notifikasi Sukses / Error / Validation -->
     @if(session('success'))
         <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-black flex items-center justify-between">
             <span class="flex items-center gap-1.5"><i class="ph-bold ph-check-circle text-base"></i> {{ session('success') }}</span>
         </div>
     @endif
+
     @if(session('error'))
         <div class="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-black flex items-center justify-between">
             <span class="flex items-center gap-1.5"><i class="ph-bold ph-warning-circle text-base"></i> {{ session('error') }}</span>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold space-y-1">
+            <div class="flex items-center gap-1.5 font-black">
+                <i class="ph-bold ph-warning-circle text-base shrink-0"></i>
+                <span>Gagal menyimpan data user:</span>
+            </div>
+            <ul class="list-disc list-inside pl-5 space-y-0.5">
+                @foreach($errors->all() as $err)
+                    <li>{{ $err }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 
@@ -111,14 +126,6 @@
                             >
                                 <i class="ph-bold ph-pencil-simple text-sm"></i>
                             </button>
-                            {{-- <button
-                                type="button"
-                                @click="deleteUser({{ $u->id }}, '{{ $u->name }}')"
-                                class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 transition-colors cursor-pointer"
-                                title="Hapus User"
-                            >
-                                <i class="ph-bold ph-trash text-sm"></i>
-                            </button> --}}
                         </div>
                     </td>
                 </tr>
@@ -152,12 +159,12 @@
                     <i class="ph-bold ph-user-gear text-indigo-600 text-xl"></i>
                     <h3 class="text-sm font-black text-black" x-text="isEdit ? 'Edit Akun Pengguna' : 'Tambah Akun Divisi Baru'"></h3>
                 </div>
-                <button type="button" @click="modalOpen = false" class="text-slate-400 hover:text-black">
+                <button type="button" @click="modalOpen = false" class="text-slate-400 hover:text-black cursor-pointer">
                     <i class="ph-bold ph-x text-base"></i>
                 </button>
             </div>
 
-            <form :action="formUrl" method="POST" class="mt-4 space-y-3.5 text-xs">
+            <form :action="formUrl" method="POST" @submit="handleSubmit($event)" class="mt-4 space-y-3.5 text-xs">
                 @csrf
                 <template x-if="isEdit">
                     <input type="hidden" name="_method" value="PUT">
@@ -216,19 +223,6 @@
                     </div>
                 </div>
 
-                {{-- <div>
-                    <label class="block font-black uppercase text-slate-700 mb-1">
-                        Password <span x-show="!isEdit" class="text-rose-500">*</span>
-                        <span x-show="isEdit" class="text-[10px] text-slate-400 font-normal lowercase">(kosongkan jika tidak diubah)</span>
-                    </label>
-                    <input
-                        type="password"
-                        name="password"
-                        :required="!isEdit"
-                        placeholder="Minimal 6 karakter"
-                        class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50"
-                    />
-                </div> --}}
                 <!-- Input Password & Konfirmasi Password Berdampingan -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
@@ -241,8 +235,10 @@
                             name="password"
                             x-model="formData.password"
                             :required="!isEdit"
+                            :minlength="(!isEdit || formData.password.length > 0) ? 6 : null"
                             placeholder="Min. 6 karakter"
-                            class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50"
+                            class="w-full px-3 py-2 rounded-xl border outline-none font-bold text-sm bg-slate-50/50"
+                            :class="passwordTooShort ? 'border-rose-500 focus:border-rose-600' : 'border-slate-300 focus:border-black'"
                         />
                     </div>
 
@@ -255,6 +251,7 @@
                             name="password_confirmation"
                             x-model="formData.password_confirmation"
                             :required="!isEdit || formData.password.length > 0"
+                            :minlength="(!isEdit || formData.password.length > 0) ? 6 : null"
                             placeholder="Ketik ulang password"
                             class="w-full px-3 py-2 rounded-xl border outline-none font-bold text-sm bg-slate-50/50"
                             :class="passwordMismatch ? 'border-rose-500 focus:border-rose-600' : 'border-slate-300 focus:border-black'"
@@ -262,11 +259,17 @@
                     </div>
                 </div>
 
-                <!-- Pesan Peringatan Jika Password Tidak Cocok -->
-                <p x-show="passwordMismatch" x-cloak class="text-[11px] font-bold text-rose-600 flex items-center gap-1 -mt-2">
-                    <i class="ph-bold ph-warning-circle text-xs"></i>
-                    Konfirmasi password tidak cocok!
-                </p>
+                <!-- Pesan Peringatan Validasi Password -->
+                <div class="space-y-1 -mt-1">
+                    <p x-show="passwordTooShort" x-cloak class="text-[11px] font-bold text-rose-600 flex items-center gap-1">
+                        <i class="ph-bold ph-warning-circle text-xs"></i>
+                        Password minimal harus 6 karakter! (Saat ini: <span x-text="formData.password.length"></span> karakter)
+                    </p>
+                    <p x-show="passwordMismatch" x-cloak class="text-[11px] font-bold text-rose-600 flex items-center gap-1">
+                        <i class="ph-bold ph-warning-circle text-xs"></i>
+                        Konfirmasi password tidak cocok!
+                    </p>
+                </div>
 
                 <div class="flex items-center gap-2 pt-1">
                     <input
@@ -281,14 +284,14 @@
                 </div>
 
                 <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-200">
-                    <button type="button" @click="modalOpen = false" class="px-3.5 py-1.5 rounded-xl bg-slate-100 font-bold text-slate-600">
+                    <button type="button" @click="modalOpen = false" class="px-3.5 py-1.5 rounded-xl bg-slate-100 font-bold text-slate-600 cursor-pointer">
                         Batal
                     </button>
                     <button 
                         type="submit" 
-                        :disabled="passwordMismatch"
-                        :class="passwordMismatch ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'"
-                        class="px-5 py-1.5 rounded-xl bg-black hover:bg-slate-800 text-white font-black shadow-xs"
+                        :disabled="hasFormError"
+                        :class="hasFormError ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800'"
+                        class="px-5 py-1.5 rounded-xl bg-black text-white font-black shadow-xs transition-all"
                     >
                         <span x-text="isEdit ? 'Simpan Perubahan' : 'Buat Akun'"></span>
                     </button>
@@ -320,12 +323,28 @@ function userManager() {
             is_active: true,
         },
 
+        // Validasi panjang password minimal 6 karakter
+        get passwordTooShort() {
+            if (!this.formData.password) return false;
+            return this.formData.password.length < 6;
+        },
+
         // Cek ketidakcocokan password secara reaktif
         get passwordMismatch() {
             if (!this.formData.password && !this.formData.password_confirmation) return false;
             return this.formData.password !== this.formData.password_confirmation;
         },
 
+        get hasFormError() {
+            return this.passwordTooShort || this.passwordMismatch;
+        },
+
+        handleSubmit(e) {
+            if (this.hasFormError) {
+                e.preventDefault();
+            }
+        },
+
         openCreateModal() {
             this.isEdit = false;
             this.formUrl = '{{ route("users.store") }}';
@@ -351,66 +370,6 @@ function userManager() {
                 cabang_id: user.cabang_id,
                 password: '',
                 password_confirmation: '',
-                is_active: Boolean(user.is_active),
-            };
-            this.modalOpen = true;
-        },
-
-        deleteUser(id, name) {
-            Swal.fire({
-                title: 'Hapus akun ini?',
-                text: `Akun "${name}" akan dihapus permanen dari sistem.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#e11d48',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    const form = document.getElementById('deleteUserForm');
-                    form.action = `/users/${id}`;
-                    form.submit();
-                }
-            });
-        }
-    };
-}
-
-function userManager_lawas() {
-    return {
-        modalOpen: false,
-        isEdit: false,
-        formUrl: '{{ route("users.store") }}',
-        formData: {
-            name: '',
-            email: '',
-            role: 'bahan',
-            cabang_id: '{{ $cabangs->first()->id ?? 1 }}',
-            is_active: true,
-        },
-
-        openCreateModal() {
-            this.isEdit = false;
-            this.formUrl = '{{ route("users.store") }}';
-            this.formData = {
-                name: '',
-                email: '',
-                role: 'bahan',
-                cabang_id: '{{ $cabangs->first()->id ?? 1 }}',
-                is_active: true,
-            };
-            this.modalOpen = true;
-        },
-
-        openEditModal(user) {
-            this.isEdit = true;
-            this.formUrl = `/users/${user.id}`;
-            this.formData = {
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                cabang_id: user.cabang_id,
                 is_active: Boolean(user.is_active),
             };
             this.modalOpen = true;

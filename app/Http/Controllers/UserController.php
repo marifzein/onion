@@ -69,7 +69,9 @@ class UserController extends Controller
             'cabang_id'             => 'nullable|exists:cabangs,id',
             'is_active'             => 'nullable|boolean',
         ], [
+            'email.unique'          => 'Email login ini sudah terdaftar pada akun lain.',
             'role.in'               => 'Anda tidak memiliki hak akses untuk membuat user dengan role ini.',
+            'password.min'          => 'Password minimal harus terdiri dari 6 karakter.',
             'password.confirmed'    => 'Konfirmasi password tidak cocok dengan password yang dimasukkan.',
         ]);
 
@@ -99,7 +101,9 @@ class UserController extends Controller
             'cabang_id'             => 'nullable|exists:cabangs,id',
             'is_active'             => 'nullable|boolean',
         ], [
+            'email.unique'          => 'Email login ini sudah digunakan oleh akun lain.',
             'role.in'               => 'Anda tidak memiliki hak akses untuk menetapkan role ini.',
+            'password.min'          => 'Password baru minimal harus terdiri dari 6 karakter.',
             'password.confirmed'    => 'Konfirmasi password tidak cocok.',
         ]);
 
