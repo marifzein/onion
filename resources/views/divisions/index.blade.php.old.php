@@ -2,7 +2,6 @@
 
 @section('content')
 <style>
-    /* Custom Checkbox Touch-Friendly */
     .qc-checkbox {
         appearance: none;
         -webkit-appearance: none;
@@ -17,7 +16,7 @@
         place-content: center;
         background-color: #ffffff;
     }
-    .qc-checkbox:hover {
+    .qc-checkbox:hover:not(:disabled) {
         border-color: #00bf63;
         box-shadow: 0 0 0 3px rgba(0, 191, 99, 0.15);
     }
@@ -33,7 +32,13 @@
         border-width: 0 3.5px 3.5px 0;
         transform: rotate(45deg) translate(-1px, -1px);
     }
-    /* Animasi Ticker Marquee Pelan */
+    /* Style saat checkbox terkunci */
+    .qc-checkbox:disabled {
+        background-color: #e2e8f0;
+        border-color: #cbd5e1;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
     @keyframes slowMarquee {
         0% { transform: translateX(100%); }
         100% { transform: translateX(-100%); }
@@ -43,15 +48,17 @@
         white-space: nowrap;
         animation: slowMarquee 45s linear infinite;
     }
-    .animate-marquee-slow:hover {
-        animation-play-state: paused;
-    }
 </style>
+
+@php
+    $stageFlow = ['kaprod', 'bahan', 'print', 'jahit', 'finishing', 'qc', 'selesai'];
+    $currentDivIndex = array_search($activeDivision, $stageFlow);
+@endphp
 
 <div x-data="divisionManager()" class="h-full w-full flex flex-col justify-between overflow-hidden">
     
-    <!-- SUB-BAR / FILTER DIVISI & COUNTER RINGKAS -->
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-2.5 shrink-0">
+    <!-- SUB-BAR / HEADER DIVISI -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-2 shrink-0">
         <div class="flex items-center gap-3">
             <span class="text-xs px-3 py-1 rounded-full text-white font-black uppercase tracking-wider {{ $config['badge_bg'] }} shadow-xs flex items-center gap-1.5">
                 <i class="ph-bold ph-shield-check"></i> {{ $config['name'] }}
@@ -60,26 +67,26 @@
                 {{ $config['sub'] }}
             </span>
 
-            <!-- Dropdown Pilihan Divisi untuk Admin / Superadmin -->
-            @if(in_array($user->role, ['admin', 'superadmin', 'kaprod']))
+            @if(in_array($user->role, ['admin', 'superadmin']))
                 <select 
                     onchange="window.location.href='/update-status?div=' + this.value"
                     class="ml-2 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-black text-black outline-none focus:border-black cursor-pointer shadow-xs"
                 >
+                    <option value="kaprod" {{ $activeDivision == 'kaprod' ? 'selected' : '' }}>Ka Prod</option>
                     <option value="bahan" {{ $activeDivision == 'bahan' ? 'selected' : '' }}>Divisi Bahan</option>
                     <option value="print" {{ $activeDivision == 'print' ? 'selected' : '' }}>Divisi Print</option>
                     <option value="jahit" {{ $activeDivision == 'jahit' ? 'selected' : '' }}>Divisi Jahit</option>
-                    <option value="qc" {{ $activeDivision == 'qc' ? 'selected' : '' }}>Divisi QC</option>
                     <option value="finishing" {{ $activeDivision == 'finishing' ? 'selected' : '' }}>Divisi Finishing</option>
+                    <option value="qc" {{ $activeDivision == 'qc' ? 'selected' : '' }}>Divisi QC</option>
                 </select>
             @endif
         </div>
 
-        <!-- Counter Total / Selesai -->
         @php
             $totalCount = $orders->count();
-            $doneCount = $orders->filter(function($o) use ($activeDivision) {
-                return optional($o->stationProgress->firstWhere('division', $activeDivision))->is_cleared;
+            $doneCount = $orders->filter(function($o) use ($stageFlow, $currentDivIndex) {
+                $orderIdx = array_search($o->current_status, $stageFlow);
+                return $orderIdx !== false && $orderIdx > $currentDivIndex;
             })->count();
             $pendingCount = $totalCount - $doneCount;
         @endphp
@@ -92,17 +99,16 @@
         </div>
     </div>
 
-    <!-- TABEL ORDERAN ALUR DIVISI -->
+    <!-- TABEL ORDERAN -->
     <div class="bg-white rounded-2xl border border-slate-300 shadow-xs flex-1 flex flex-col overflow-hidden">
-        <!-- Sub-header Keterangan -->
         <div class="px-5 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <p class="text-xs font-bold text-slate-600">
-                    Beri centang untuk menyatakan pesanan <strong class="text-black">selesai pada {{ $config['name'] }}</strong> dan meneruskan antrean ke tahap berikutnya.
+                    Beri centang saat pesanan <strong class="text-black">selesai pada {{ $config['name'] }}</strong> untuk meneruskan ke divisi berikutnya.
                 </p>
             </div>
-            <div class="text-[11px] font-semibold text-slate-400">Auto-sync Realtime</div>
+            <div class="text-[11px] font-semibold text-slate-400">Rantai Produksi Berurutan (Strict Flow)</div>
         </div>
 
         <div class="flex-1 overflow-y-auto">
@@ -123,11 +129,23 @@
                 <tbody class="divide-y divide-slate-200 font-medium">
                     @forelse($orders as $idx => $order)
                     @php
+                        $orderStageIdx = array_search($order->current_status, $stageFlow);
+                        if ($orderStageIdx === false) $orderStageIdx = 0;
+
+                        // Status logika per divisi
+                        $isPast = $orderStageIdx > $currentDivIndex;       // Sudah selesai di divisi ini
+                        $isCurrent = $orderStageIdx === $currentDivIndex;  // Sedang giliran divisi ini
+                        $isWaiting = $orderStageIdx < $currentDivIndex;    // Masih menunggu tahap sebelumnya
+
+                        // Syarat bisa dicentang / diuncheck
+                        $canCheck = $isCurrent;
+                        $canUncheck = ($orderStageIdx === $currentDivIndex + 1); // hanya bisa batal jika divisi berikutnya belum selesai
+                        $canAction = $canCheck || $canUncheck;
+
                         $progress = $order->stationProgress->firstWhere('division', $activeDivision);
-                        $isCleared = (bool) ($progress?->is_cleared ?? false);
                         $isUrgent = \Carbon\Carbon::parse($order->target_deadline)->isPast() || \Carbon\Carbon::parse($order->target_deadline)->isToday();
                     @endphp
-                    <tr class="transition-colors {{ $isCleared ? 'bg-emerald-50/30 hover:bg-emerald-50/50' : 'hover:bg-slate-50/80' }}">
+                    <tr class="transition-colors {{ $isPast ? 'bg-emerald-50/30' : ($isWaiting ? 'bg-slate-50/50 opacity-60' : 'hover:bg-slate-50/80') }}">
                         <!-- No -->
                         <td class="py-2.5 px-3 text-center font-black text-black text-sm">
                             {{ $idx + 1 }}
@@ -157,7 +175,7 @@
                             </div>
                         </td>
 
-                        <!-- Order Out (Deadline) -->
+                        <!-- Order Out -->
                         <td class="py-2.5 px-3">
                             <p class="text-sm font-black leading-tight {{ $isUrgent ? 'text-rose-600' : 'text-slate-800' }}">
                                 {{ \Carbon\Carbon::parse($order->target_deadline)->translatedFormat('d M Y') }}
@@ -169,38 +187,52 @@
 
                         <!-- Tahap Sebelumnya -->
                         <td class="py-2.5 px-3 text-center">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black bg-lime-100 text-lime-800 border border-lime-300 shadow-2xs">
-                                <i class="ph-bold ph-check-circle text-lime-600"></i> {{ $config['prev_label'] }}
-                            </span>
-                        </td>
-
-                        <!-- Status Divisi Aktif -->
-                        <td class="py-2.5 px-3 text-center">
-                            @if($isCleared)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
-                                    <i class="ph-bold ph-seal-check text-emerald-600 text-sm"></i> {{ $config['next_label'] }}
+                            @if($isWaiting)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                    <i class="ph-bold ph-hourglass text-xs"></i> Belum Selesai
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800 border border-amber-300">
-                                    <i class="ph-bold ph-clock text-amber-600"></i> Menunggu Cek
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black bg-lime-100 text-lime-800 border border-lime-300 shadow-2xs">
+                                    <i class="ph-bold ph-check-circle text-lime-600"></i> {{ $config['prev_label'] }}
                                 </span>
                             @endif
                         </td>
 
-                        <!-- Kolom Aksi Checkbox -->
+                        <!-- Status Divisi Ini -->
+                        <td class="py-2.5 px-3 text-center">
+                            @if($isPast)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                                    <i class="ph-bold ph-seal-check text-emerald-600 text-sm"></i> {{ $config['next_label'] }}
+                                </span>
+                            @elseif($isCurrent)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                                    <i class="ph-bold ph-clock text-amber-600"></i> Belum selesai
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-400 border border-slate-200">
+                                    <i class="ph-bold ph-lock text-xs"></i> Dalam proses
+                                </span>
+                            @endif
+                        </td>
+
+                        <!-- Kolom Aksi Checkbox (Dikunci Jika Belum Gilirannya) -->
                         <td class="py-2.5 px-3 text-center">
                             <div class="flex items-center justify-center">
                                 <input
                                     type="checkbox"
                                     class="qc-checkbox"
-                                    {{ $isCleared ? 'checked' : '' }}
-                                    @click.prevent="handleToggle({{ $order->id }}, '{{ $order->no_so }}', '{{ addslashes($order->customer->name ?? $order->customer_name) }}', {{ $isCleared ? 'true' : 'false' }})"
-                                    title="{{ $isCleared ? 'Klik untuk membatalkan/rollback status' : 'Klik untuk approve status selesai' }}"
+                                    {{ $isPast ? 'checked' : '' }}
+                                    {{ !$canAction ? 'disabled' : '' }}
+                                    @click.prevent="
+                                        if (!{{ $canAction ? 'true' : 'false' }}) return;
+                                        handleToggle({{ $order->id }}, '{{ $order->no_so }}', '{{ addslashes($order->customer->name ?? $order->customer_name) }}', {{ $isPast ? 'true' : 'false' }})
+                                    "
+                                    title="{{ !$canAction ? ($isWaiting ? 'Menunggu tahap sebelumnya selesai' : 'Sudah diproses divisi berikutnya') : ($isPast ? 'Klik untuk membatalkan (rollback)' : 'Klik untuk approve status selesai') }}"
                                 />
                             </div>
                         </td>
 
-                        <!-- Kolom Modal Edit (Pensil) -->
+                        <!-- Modal Edit -->
                         <td class="py-2.5 px-2 text-center">
                             <button
                                 type="button"
@@ -224,7 +256,7 @@
         </div>
     </div>
 
-    <!-- RUNNING TEXT FOOTER PERSIS PROTOTIPE -->
+    <!-- RUNNING TEXT FOOTER -->
     <footer class="bg-black text-white h-10 px-5 flex items-center overflow-hidden border-t border-slate-800 shrink-0 select-none rounded-xl mt-2">
         <div class="flex items-center w-full">
             <div class="flex items-center gap-1.5 {{ $config['badge_bg'] }} text-white font-black text-xs uppercase tracking-wider px-2.5 py-0.5 rounded-md shrink-0 mr-3 shadow-xs">
@@ -236,14 +268,14 @@
                 <div class="animate-marquee-slow inline-block whitespace-nowrap">
                     <span>{{ $config['sop_text'] }}</span>
                     <span class="mx-7 text-slate-500 font-black">&bull;</span>
-                    <span class="text-amber-400 font-black">Data tersinkron otomatis ke TV Display Monitoring secara realtime.</span>
+                    <span class="text-amber-400 font-black">Tahap divisi bersifat sekuensial (tidak dapat melompati divisi sebelumnya).</span>
                     <span class="mx-7 text-slate-500 font-black">&bull;</span>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- MODAL EDIT PROGRES QTY & CATATAN OPSIONAL -->
+    <!-- MODAL EDIT PROGRES -->
     <div
         x-show="modalEditOpen"
         x-cloak
@@ -285,7 +317,7 @@
                     <textarea
                         x-model="formEdit.issue_note"
                         rows="3"
-                        placeholder="Contoh: Roll kain nomor 2 cacat printing, benang warna tosca habis, dll..."
+                        placeholder="Tulis kendala jika ada..."
                         class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-xs bg-slate-50"
                     ></textarea>
                 </div>
@@ -320,7 +352,6 @@ function divisionManager() {
             issue_note: '',
         },
 
-        // Konfirmasi Centang / Rollback
         handleToggle(orderId, noSo, customerName, isCurrentlyCleared) {
             const title = isCurrentlyCleared 
                 ? 'Update status menjadi belum selesai?' 
@@ -371,11 +402,16 @@ function divisionManager() {
                                 window.location.reload();
                             });
                         } else {
-                            Swal.fire('Gagal', data.message || 'Terjadi kesalahan sistem', 'error');
+                            Swal.fire({
+                                title: 'Aksi Ditolak!',
+                                text: data.message || 'Urutan tahap tidak sesuai.',
+                                icon: 'error',
+                                confirmButtonColor: '#e11d48',
+                            });
                         }
                     })
                     .catch(() => {
-                        Swal.fire('Error', 'Gagal memproses ke server database', 'error');
+                        Swal.fire('Error', 'Gagal memproses ke database server', 'error');
                     });
                 }
             });
