@@ -47,7 +47,7 @@
     <header class="bg-white border-b border-slate-300 px-3 md:px-6 py-2.5 flex items-center justify-between shrink-0 shadow-xs z-30">
         <div class="flex items-center gap-2">
             <div class="flex items-center gap-2.5">
-                <div class="h-8 md:h-12 w-auto flex items-center justify-center text-black shrink-0">
+                <div class="h-9 md:h-12 w-auto flex items-center justify-center text-black shrink-0">
                     <img
                         src="/img/onion_logo.jpg"
                         alt="ONION CREATIVE Logo"
@@ -61,7 +61,8 @@
                             Display
                         </span>
                     </div>
-                    <p class="text-[10px] sm:text-xs font-bold text-blue-500 tracking-wide mt-0.5">
+                    <!-- Teks panjang disembunyikan di HP terkecil agar muat, tampil rapi di sm ke atas -->
+                    <p class="hidden sm:block text-xs font-bold text-blue-500 tracking-wide mt-0.5">
                         Manajemen Antrean & Produksi
                     </p>
                 </div>
@@ -77,16 +78,17 @@
 
             <!-- Dropdown Menu Profil -->
             <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                <!-- Tombol Trigger Profil -->
+                <!-- Tombol Trigger Profil: KELAS HIDDEN DIHAPUS SUPAYA MUNCUL DI HP -->
                 <button @click="open = !open" class="flex items-center gap-2 pl-2 border-l border-slate-300 cursor-pointer focus:outline-none group">
-                    
-                    <!-- Teks Nama & Role: Muncul di Desktop, dan versi ringkas/rapi di Mobile -->
                     <div class="text-right">
-                        <p class="text-xs md:text-sm font-black text-black leading-tight group-hover:text-blue-600 transition truncate max-w-[110px] sm:max-w-none">{{ $user->name ?? 'Admin' }}</p>
-                        <span class="text-[10px] md:text-[11px] text-slate-500 font-extrabold uppercase block leading-none mt-0.5">{{ $role }}</span>
+                        <p class="text-xs md:text-sm font-black text-black leading-tight group-hover:text-blue-600 transition truncate max-w-[120px] md:max-w-none">
+                            {{ $user->name ?? 'Admin Produksi' }}
+                        </p>
+                        <span class="text-[10px] md:text-[11px] text-slate-500 font-extrabold uppercase block leading-none mt-0.5">
+                            {{ $role }}
+                        </span>
                     </div>
 
-                    <!-- Avatar / Inisial -->
                     <div class="w-9 h-9 md:w-10 md:h-10 rounded-full ring-2 ring-black bg-slate-900 text-white flex items-center justify-center font-black text-xs md:text-sm shrink-0 uppercase select-none shadow-xs group-hover:bg-blue-600 transition overflow-hidden">       
                         @if(!empty($user->avatar))
                             <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
