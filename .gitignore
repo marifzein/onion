@@ -10,6 +10,8 @@
 /public/build
 /public/hot
 /public/storage
+/public/img/avatars/*
+!/public/img/avatars/.gitkeep
 
 # Storage Runtime & Framework Caches
 /storage/*.key

@@ -82,6 +82,10 @@ class UserController extends Controller
             $validated['avatar'] = 'img/avatars/' .$filename;
         }
 
+        if ($request->hasFile('avatar')) {
+            $validated['avatar'] = $this->processAndUploadAvatar($request->file('avatar'));
+        }
+
         User::create($validated);
 
         return redirect()->route('users.index')->with('success', 'Akun user divisi baru berhasil dibuat!');
@@ -125,10 +129,7 @@ class UserController extends Controller
                 @unlink(public_path($user->avatar));
             }
 
-            $file =$request->file('avatar');
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('img/avatars'),$filename);
-            $validated['avatar'] = 'img/avatars/' .$filename;
+            $validated['avatar'] = $this->processAndUploadAvatar($request->file('avatar'));
         }
 
         $validated['is_active'] =$request->has('is_active');
@@ -216,15 +217,52 @@ class UserController extends Controller
             @unlink(public_path($user->avatar));
         }
 
-        // Upload file avatar baru
-        $file = $request->file('avatar');
-        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('img/avatars'), $filename);
+        // Upload dan konversi ke WebP
+        $avatarPath = $this->processAndUploadAvatar($request->file('avatar'));
         
         $user->update([
-            'avatar' => 'img/avatars/' . $filename,
+            'avatar' => $avatarPath,
         ]);
 
         return redirect()->route('avatar.change')->with('success', 'Foto profil (avatar) Anda berhasil diperbarui!');
+    }
+
+    /**
+     * Helper privat untuk memproses dan mengkonversi gambar ke format WebP
+     */
+    private function processAndUploadAvatar($file): string
+    {
+        $filename = time() . '_' . uniqid() . '.webp';
+        $destinationPath = public_path('img/avatars');
+
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+
+        $filePath = $destinationPath . '/' . $filename;
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        // Buat image resource berdasarkan ekstensi aslinya
+        $image = null;
+        if ($extension === 'jpeg' || $extension === 'jpg') {
+            $image = imagecreatefromjpeg($file->getRealPath());
+        } elseif ($extension === 'png') {
+            $image = imagecreatefrompng($file->getRealPath());
+            // Pertahankan transparansi PNG untuk WebP
+            imagepalettetotruecolor($image);
+            imagealphablending($image, true);
+            imagesavealpha($image, true);
+        }
+
+        if ($image) {
+            // Simpan ke format webp dengan kualitas 80 (cukup jernih & size kecil)
+            imagewebp($image, $filePath, 80);
+            imagedestroy($image);
+        } else {
+            // Fallback jika gagal baca GD, pindah file asli
+            $file->move($destinationPath, $filename);
+        }
+
+        return 'img/avatars/' . $filename;
     }
 }
