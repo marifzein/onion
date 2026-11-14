@@ -18,6 +18,7 @@ class User extends Authenticatable
         'cabang_id',
         'role',
         'is_active',
+        'avatar',
     ];
 
     protected $hidden = [

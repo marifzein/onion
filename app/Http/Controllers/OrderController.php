@@ -23,7 +23,7 @@ class OrderController extends Controller
     }
 
     // Tampilkan Form Input Sales Order
-    public function create()
+    public function create_old()
     {
         $cabangs = Cabang::where('is_active', true)->get();
         
@@ -33,8 +33,36 @@ class OrderController extends Controller
         return view('orders.create', compact('cabangs', 'noSo'));
     }
 
+    public function create()
+    {
+        $cabangs = Cabang::where('is_active', true)->get();
+        
+        // Auto generate No SO urut harian: SO-YYYYMMDD-XXX (Cth: SO-20261114-001)
+        $todayDateStr = date('Ymd'); // Contoh: 20261114
+        $prefix = 'SO-' . $todayDateStr . '-';
+
+        // Cari nomor urut terakhir pada hari ini di database
+        $lastOrderToday = Order::where('no_so', 'LIKE', $prefix . '%')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($lastOrderToday) {
+            // Ambil 3 digit terakhir, lalu increment (+1)
+            $lastSeq = (int) substr($lastOrderToday->no_so, -3);
+            $nextSeq = $lastSeq + 1;
+        } else {
+            // Jika belum ada order hari ini, mulai dari 1
+            $nextSeq = 1;
+        }
+
+        $noSo = $prefix . str_pad($nextSeq, 3, '0', STR_PAD_LEFT);
+
+        return view('orders.create', compact('cabangs', 'noSo'));
+    }
+
+
     // Simpan Data Order ke Database
-    public function store(Request $request)
+    public function store_old(Request $request)
     {
         $user = auth()->user();
         if (!$user) {
@@ -75,6 +103,120 @@ class OrderController extends Controller
                 // 1. Simpan Header Order
                 $newOrder = Order::create([
                     'no_so'           => $validated['no_so'],
+                    'cabang_id'       => $user->cabang_id,
+                    'customer_id'     => $validated['customer_id'],
+                    'customer_name'   => $validated['customer_name'],
+                    'order_title'     => $validated['order_title'],
+                    'qty'             => $validated['qty'],
+                    'satuan'          => $validated['satuan'],
+                    'fabric_type'     => $validated['fabric_type'],
+                    'order_type'      => $validated['order_type'] ?? 'Atasan Fullprint',
+                    'target_deadline' => $validated['target_deadline'],
+                    'spk_photo_path'  => $spkPath,
+                    'notes'           => $validated['notes'] ?? null,
+                    'current_status'  => 'kaprod',
+                    'created_by'      => $user->id,
+                ]);
+
+                // 2. Simpan Riwayat Log Pertama
+                OrderStatusLog::create([
+                    'order_id'    => $newOrder->id,
+                    'cabang_id'   => $user->cabang_id,
+                    'from_status' => 'draft_admin',
+                    'to_status'   => 'kaprod',
+                    'user_id'     => $user->id,
+                    'action_type' => 'forward',
+                    'note'        => 'Sales order baru diinput oleh ' . $user->name,
+                ]);
+
+                // 3. Inisialisasi Antrean Divisi Produksi
+                $divisions = ['bahan', 'print', 'jahit', 'qc', 'finishing'];
+                foreach ($divisions as $div) {
+                    OrderStationProgress::create([
+                        'order_id'   => $newOrder->id,
+                        'cabang_id'  => $user->cabang_id,
+                        'division'   => $div,
+                        'is_cleared' => 0,
+                    ]);
+                }
+
+                return $newOrder;
+            });
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => "Order {$order->no_so} berhasil disimpan ke database!",
+                'order'   => $order,
+            ]);
+
+        } catch (\Throwable $e) {
+            if ($spkPath && Storage::disk('public')->exists($spkPath)) {
+                Storage::disk('public')->delete($spkPath);
+            }
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Transaksi database gagal: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // Simpan Data Order ke Database
+    public function store(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Sesi login telah berakhir, silakan login kembali.',
+            ], 401);
+        }
+
+        // Validasi input dasar
+        $validated = $request->validate([
+            'customer_id'     => 'required|exists:customers,id',
+            'customer_name'   => 'required|string|max:255',
+            'order_title'     => 'required|string|max:255',
+            'qty'             => 'required|integer|min:1',
+            'satuan'          => 'required|in:pcs,stel',
+            'fabric_type'     => 'required|string|max:255',
+            'order_type'      => 'nullable|string|max:255',
+            'target_deadline' => 'required|date',
+            'notes'           => 'nullable|string',
+            'spk_photo_base64'=> 'nullable|string',
+        ]);
+
+        $spkPath = null;
+
+        // Proses kompresi biner WebP / Base64 dari HP atau Paste WA
+        if (!empty($validated['spk_photo_base64']) && str_starts_with($validated['spk_photo_base64'], 'data:image')) {
+            $imageParts = explode(';base64,', $validated['spk_photo_base64']);
+            $imageBase64 = base64_decode($imageParts[1]);
+
+            $fileName = 'spk_documents/' . time() . '-' . Str::random(5) . '.webp';
+            Storage::disk('public')->put($fileName, $imageBase64);
+            $spkPath = $fileName;
+        }
+
+        try {
+            $order = DB::transaction(function () use ($validated, $spkPath, $user) {
+                
+                // GENERATE ULANG NOMOR SO AMAN DI DALAM DATABASE TRANSACTION (Mencegah Race Condition / Dobel)
+                $todayDateStr = date('Ymd');
+                $prefix = 'SO-' . $todayDateStr . '-';
+                
+                // Gunakan lockForUpdate() agar aman jika ada 2 admin input bersamaan
+                $lastOrderToday = Order::where('no_so', 'LIKE', $prefix . '%')
+                    ->orderBy('id', 'desc')
+                    ->lockForUpdate()
+                    ->first();
+
+                $nextSeq = $lastOrderToday ? ((int) substr($lastOrderToday->no_so, -3) + 1) : 1;
+                $finalNoSo = $prefix . str_pad($nextSeq, 3, '0', STR_PAD_LEFT);
+
+                // 1. Simpan Header Order
+                $newOrder = Order::create([
+                    'no_so'           => $finalNoSo,
                     'cabang_id'       => $user->cabang_id,
                     'customer_id'     => $validated['customer_id'],
                     'customer_name'   => $validated['customer_name'],

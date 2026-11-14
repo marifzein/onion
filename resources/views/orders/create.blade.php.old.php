@@ -5,6 +5,67 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- PeerJS P2P -->
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<!-- Driver.js Assets (CSS & JS) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
+<script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+
+<style>
+    /* Animasi Berdenyut Tombol Panduan Oranye */
+    @keyframes pulseOrange {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.65); }
+        70% { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(249, 115, 22, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+    }
+    .btn-pulse-orange {
+        animation: pulseOrange 2s infinite;
+    }
+    .btn-pulse-orange:hover {
+        animation: none;
+        transform: scale(1.1);
+    }
+
+    /* Styling Popover Driver.js ala TataKas */
+    .driver-popover .driver-popover-next-btn,
+    .driver-popover .driver-popover-done-btn {
+        background-color: #10b981 !important;
+        color: #ffffff !important;
+        border: none !important;
+        text-shadow: none !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        padding: 6px 14px !important;
+        border-radius: 8px !important;
+    }
+    .driver-popover .driver-popover-next-btn:hover,
+    .driver-popover .driver-popover-done-btn:hover {
+        background-color: #059669 !important;
+    }
+    .driver-popover .driver-popover-prev-btn {
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        padding: 6px 14px !important;
+        border-radius: 8px !important;
+    }
+    .driver-popover {
+        border-radius: 16px !important;
+        padding: 16px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15) !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+    .driver-popover-title {
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        font-size: 15px !important;
+    }
+    .driver-popover-description {
+        color: #64748b !important;
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+    }
+</style>
 
 <div
     x-data="orderForm()"
@@ -13,7 +74,7 @@
 >
     <div class="bg-white rounded-3xl border border-slate-300 shadow-xs p-6 md:p-8">
         <!-- Header Form -->
-        <div class="border-b border-slate-200 pb-4 mb-6 flex items-center justify-between">
+        <div id="tour-create-header" class="border-b border-slate-200 pb-4 mb-6 flex items-center justify-between">
             <div>
                 <h2 class="text-xl font-black text-black tracking-tight">Formulir Pesanan (Sales Order)</h2>
                 <p class="text-xs text-slate-500 font-semibold mt-0.5">
@@ -28,7 +89,7 @@
 
         <form @submit.prevent="submitOrder()" class="space-y-5">
             <!-- Row 0: Pilih Cabang -->
-            <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+            <div id="tour-create-cabang" class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
                 <span class="text-xs font-black uppercase text-slate-700 flex items-center gap-1.5">
                     <i class="ph-bold ph-storefront text-indigo-600 text-base"></i> Cabang Produksi
                 </span>
@@ -42,12 +103,13 @@
             <!-- Row 1: Customer (dengan Tombol Tambah Cepat) & Judul Order -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Dropdown Pencarian Customer Otomatis POS -->
-                <div class="relative" @click.outside="customerDropdownOpen = false">
+                <div id="tour-create-customer" class="relative" @click.outside="customerDropdownOpen = false">
                     <div class="flex items-center justify-between mb-1.5">
                         <label class="block text-xs font-black uppercase text-slate-700">
                             Nama Customer / Instansi <span class="text-rose-500">*</span>
                         </label>
                         <button
+                            id="tour-btn-quick-cust"
                             type="button"
                             @click="openCustomerModal = true"
                             class="text-xs font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
@@ -98,7 +160,7 @@
                     </div>
                 </div>
 
-                <div>
+                <div id="tour-create-title">
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">
                         Judul Order / Event <span class="text-rose-500">*</span>
                     </label>
@@ -115,7 +177,7 @@
             </div>
 
             <!-- Row 2: Qty & Satuan -->
-            <div class="p-4 bg-indigo-50/40 rounded-2xl border border-indigo-100">
+            <div id="tour-create-qty" class="p-4 bg-indigo-50/40 rounded-2xl border border-indigo-100">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-900 mb-1.5 flex items-center gap-1.5">
@@ -151,7 +213,7 @@
             <!-- Row 3: Bahan / Fabric & Target Deadline (1 Baris - 2 Kolom) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Dropdown Bahan POS -->
-                <div class="relative" @click.outside="fabricDropdownOpen = false">
+                <div id="tour-create-fabric" class="relative" @click.outside="fabricDropdownOpen = false">
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">
                         Bahan / Fabric <span class="text-rose-500">*</span>
                     </label>
@@ -197,7 +259,7 @@
                 </div>
 
                 <!-- Target Deadline (Order Out) -->
-                <div>
+                <div id="tour-create-deadline">
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">
                         Target Deadline (Order Out) <span class="text-rose-500">*</span>
                     </label>
@@ -211,7 +273,7 @@
             </div>
 
             <!-- Row 4: Tipe Pesanan (Baris Tersendiri - Colspan Penuh) -->
-            <div>
+            <div id="tour-create-type">
                 <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">Tipe Pesanan</label>
                 <input
                     type="text"
@@ -222,7 +284,7 @@
             </div>
 
             <!-- Row 5: Deskripsi / Catatan -->
-            <div>
+            <div id="tour-create-notes">
                 <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">Deskripsi & Instruksi Pengerjaan (Opsional)</label>
                 <textarea
                     x-model="form.notes"
@@ -233,7 +295,7 @@
             </div>
 
             <!-- Row 6: Foto Form SO Fisik & QR Camera P2P -->
-            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-300">
+            <div id="tour-create-photo" class="p-4 bg-slate-50 rounded-2xl border border-slate-300">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
                         <i class="ph-bold ph-camera text-indigo-600 text-base"></i> Foto Formulir SO Fisik (Ttd Customer)
@@ -294,6 +356,7 @@
                     <i class="ph-bold ph-shield-check text-emerald-600"></i> Disimpan sebagai arsip digital
                 </span>
                 <button
+                    id="tour-create-submit"
                     type="submit"
                     :disabled="isSubmitting"
                     class="px-6 py-2.5 rounded-xl bg-black hover:bg-slate-800 text-white font-black text-xs shadow-md cursor-pointer flex items-center gap-2"
@@ -421,7 +484,129 @@
     </div>
 </div>
 
+<!-- TOMBOL BANTUAN "?" MELAYANG ORANYE BERDENYUT DI POJOK KANAN BAWAH -->
+<button 
+    type="button" 
+    onclick="jalankanTourOrderCreate()" 
+    title="Panduan Input Sales Order"
+    class="btn-pulse-orange fixed bottom-6 right-6 z-[9999] w-11 h-11 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-lg shadow-lg flex items-center justify-center cursor-pointer transition-colors"
+>
+    ?
+</button>
+
 <script>
+function jalankanTourOrderCreate() {
+    const driverFactory = window.driver?.js?.driver || window.driver;
+    if (!driverFactory) {
+        alert('Panduan sedang memuat, silakan klik sekali lagi.');
+        return;
+    }
+
+    const driverObj = driverFactory({
+        showProgress: true,
+        allowClose: true,
+        overlayColor: 'rgba(0, 0, 0, 0.75)',
+        nextBtnText: 'Lanjut &rarr;',
+        prevBtnText: '&larr; Kembali',
+        doneBtnText: 'Paham!',
+        steps: [
+            { 
+                element: '#tour-create-header',
+                popover: { 
+                    title: 'Formulir Input Sales Order (SO)', 
+                    description: 'Nomor SO dibuat otomatis oleh sistem. Pesanan yang disimpan di sini akan langsung masuk ke antrean Ka Prod.', 
+                    side: "bottom", 
+                    align: 'start' 
+                } 
+            },
+            { 
+                element: '#tour-create-cabang',
+                popover: { 
+                    title: 'Pilih Cabang Produksi', 
+                    description: 'Tentukan lokasi cabang workshop tempat pesanan ini diproduksi.', 
+                    side: "bottom", 
+                    align: 'start' 
+                } 
+            },
+            { 
+                element: '#tour-create-customer',
+                popover: { 
+                    title: 'Pilih atau Tambah Pelanggan', 
+                    description: 'Ketik untuk mencari nama pelanggan/instansi yang sudah terdaftar, atau klik "+ Tambah Pelanggan Baru" jika pelanggan belum ada.', 
+                    side: "bottom", 
+                    align: 'start' 
+                } 
+            },
+            { 
+                element: '#tour-create-title',
+                popover: { 
+                    title: 'Judul Order / Event', 
+                    description: 'Masukkan nama kegiatan, tim, atau event pesanan (contoh: Jersey Futsal PLN / Reuni Akbar).', 
+                    side: "bottom", 
+                    align: 'start' 
+                } 
+            },
+            { 
+                element: '#tour-create-qty',
+                popover: { 
+                    title: 'Jumlah Qty & Satuan', 
+                    description: 'Isi total kuantitas pesanan dan pilih satuannya (pcs untuk atasan saja, atau stel untuk setelan lengkap).', 
+                    side: "top", 
+                    align: 'start' 
+                } 
+            },
+            { 
+                element: '#tour-create-fabric',
+                popover: { 
+                    title: 'Jenis Bahan / Kain', 
+                    description: 'Ketik dan pilih jenis kain yang digunakan dari daftar master bahan (contoh: Milano, NTech, MicroCool).', 
+                    side: "top", 
+                    align: 'start' 
+                } 
+            },
+            { 
+                element: '#tour-create-deadline',
+                popover: { 
+                    title: 'Target Deadline (Order Out)', 
+                    description: 'Tentukan tanggal batas waktu pesanan wajib selesai dan siap diambil pelanggan.', 
+                    side: "top", 
+                    align: 'start' 
+                } 
+            },
+            { 
+                element: '#tour-create-photo',
+                popover: { 
+                    title: 'Upload Foto Lembar SO Fisik', 
+                    description: 'Lampirkan foto bukti lembar SO fisik. Anda bisa upload dari komputer, Paste (Ctrl+V) dari WhatsApp, atau Scan QR untuk memotret langsung dari HP.', 
+                    side: "top", 
+                    align: 'start' 
+                } 
+            },
+            { 
+                element: '#tour-create-submit',
+                popover: { 
+                    title: 'Simpan & Teruskan ke Ka Prod', 
+                    description: 'Klik tombol ini setelah seluruh data lengkap untuk menyimpan SO dan memasukkannya ke antrean produksi.', 
+                    side: "top", 
+                    align: 'end' 
+                } 
+            }
+        ]
+    });
+
+    driverObj.drive();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const hasSeenTour = localStorage.getItem('onion_orders_create_tour_seen');
+    if (!hasSeenTour) {
+        setTimeout(() => {
+            jalankanTourOrderCreate();
+            localStorage.setItem('onion_orders_create_tour_seen', 'true');
+        }, 600);
+    }
+});
+
 function orderForm() {
     return {
         openQrModal: false,
@@ -433,12 +618,10 @@ function orderForm() {
         sessionToken: 'SO' + Math.random().toString(36).substring(2, 7).toUpperCase(),
         peer: null,
 
-        // Variabel Dropdown Bahan POS
         fabricDropdownOpen: false,
         fabricHighlightIndex: 0,
         fabricItems: [],
 
-        // State Modal Tambah Customer Baru
         newCustomer: {
             name: '',
             pic_name: '',
@@ -446,7 +629,6 @@ function orderForm() {
             address: '',
         },
 
-        // Tambahkan variabel :
         customerDropdownOpen: false,
         customerHighlightIndex: 0,
         customerItems: [],
@@ -466,8 +648,6 @@ function orderForm() {
             spk_photo_base64: null,
         },
 
-        // pencarian customer
-        // Tambahkan method pencarian Customer ini:
         searchCustomer() {
             if (!this.form.customer_name || this.form.customer_name.trim().length === 0) {
                 this.customerItems = [];
@@ -504,7 +684,6 @@ function orderForm() {
             this.customerDropdownOpen = false;
         },
         
-        // Submit Pelanggan Baru dari Modal Cepat
         submitQuickCustomer() {
             if (!this.newCustomer.name) return;
             this.savingCustomer = true;
@@ -522,7 +701,6 @@ function orderForm() {
             .then(data => {
                 this.savingCustomer = false;
                 if (data.status === 'success') {
-                    // Set customer_id dan customer_name dari response
                     this.form.customer_id = data.customer.id;
                     if (data.customer.pic_name) {
                         this.form.customer_name = `${data.customer.name} (PIC: ${data.customer.pic_name})`;
@@ -550,7 +728,6 @@ function orderForm() {
             });
         },
 
-        // Search API Bahan
         searchFabric() {
             fetch(`/api/fabrics/search?q=${encodeURIComponent(this.form.fabric_type || '')}`)
                 .then(res => res.json())
@@ -577,7 +754,6 @@ function orderForm() {
             this.fabricDropdownOpen = false;
         },
 
-        // WebRTC P2P Receiver Kamera HP
         initP2PReceiver() {
             try {
                 this.peer = new Peer(this.sessionToken, {
@@ -635,7 +811,7 @@ function orderForm() {
                     const max = 1400;
                     let w = img.width, h = img.height;
                     if (w > h && w > max) { h = (h * max) / w; w = max; }
-                    else if (h > max) { width = (w * max) / h; h = max; }
+                    else if (h > max) { w = (w * max) / h; h = max; }
                     canvas.width = w; canvas.height = h;
                     canvas.getContext('2d').drawImage(img, 0, 0, w, h);
 

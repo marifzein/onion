@@ -10,14 +10,42 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    /**
+     * Daftar role yang diizinkan untuk dibuat/diedit oleh user yang sedang login.
+     */
+    private function getAllowedRoles(): array
+    {
+        $currentUserRole = auth()->user()->role ?? '';
+
+        if ($currentUserRole === 'superadmin') {
+            // Superadmin bisa mengelola SEMUA role
+            return ['owner', 'superadmin', 'admin', 'kaprod', 'bahan', 'print', 'jahit', 'qc', 'finishing'];
+        }
+
+        if ($currentUserRole === 'owner') {
+            // Owner bisa mengelola SEMUA role KECUALI superadmin
+            return ['owner', 'admin', 'kaprod', 'bahan', 'print', 'jahit', 'qc', 'finishing'];
+        }
+
+        // Default jika role admin membuka menu user
+        return ['admin', 'kaprod', 'bahan', 'print', 'jahit', 'qc', 'finishing'];
+    }
+
     public function index(Request $request)
     {
-        $search = $request->input('search');$cabangs = Cabang::where('is_active', true)->get();
+        $currentUser = auth()->user();
+        $allowedRoles = $this->getAllowedRoles();
+        $search = $request->input('search');
+        $cabangs = Cabang::where('is_active', true)->get();
 
+        // Filter: Jika role owner, kecualikan user dengan role 'superadmin'
         $users = User::with('cabang')
-            ->when($search, function ($query,$search) {
+            ->when($currentUser->role === 'owner', function ($query) {
+                return $query->where('role', '!=', 'superadmin');
+            })
+            ->when($search, function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "\%{$search}%")
+                    $q->where('name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%")
                       ->orWhere('role', 'like', "%{$search}%");
                 });
@@ -26,21 +54,25 @@ class UserController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('users.index', compact('users', 'cabangs', 'search'));
+        return view('users.index', compact('users', 'cabangs', 'search', 'allowedRoles'));
     }
 
     public function store(Request $request)
     {
+        $allowedRoles = $this->getAllowedRoles();
+
         $validated = $request->validate([
             'name'                  => 'required|string|max:255',
             'email'                 => 'required|email|unique:users,email',
-            'password'              => 'required|string|min:6|confirmed', // Harus sama dengan password_confirmation
-            'role'                  => 'required|in:superadmin,owner,admin,kaprod,bahan,print,jahit,qc,finishing',
+            'password'              => 'required|string|min:6|confirmed',
+            'role'                  => ['required', Rule::in($allowedRoles)], // Validasi hanya role yang diizinkan
             'cabang_id'             => 'nullable|exists:cabangs,id',
             'is_active'             => 'nullable|boolean',
         ], [
+            'email.unique'          => 'Email login ini sudah terdaftar pada akun lain.',
+            'role.in'               => 'Anda tidak memiliki hak akses untuk membuat user dengan role ini.',
+            'password.min'          => 'Password minimal harus terdiri dari 6 karakter.',
             'password.confirmed'    => 'Konfirmasi password tidak cocok dengan password yang dimasukkan.',
-            'password.min'          => 'Password minimal harus 6 karakter.',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -48,20 +80,31 @@ class UserController extends Controller
 
         User::create($validated);
 
-        return redirect()->route('users.index')->with('success', 'User divisi baru berhasil dibuat!');
+        return redirect()->route('users.index')->with('success', 'Akun user divisi baru berhasil dibuat!');
     }
 
     public function update(Request $request, User $user)
     {
+        $currentUser = auth()->user();
+        $allowedRoles = $this->getAllowedRoles();
+
+        // Proteksi: Owner tidak boleh mengedit akun ber-role superadmin
+        if ($currentUser->role === 'owner' && $user->role === 'superadmin') {
+            abort(403, 'Anda tidak memiliki wewenang untuk mengedit akun Superadmin.');
+        }
+
         $validated = $request->validate([
             'name'                  => 'required|string|max:255',
             'email'                 => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'password'              => 'nullable|string|min:6|confirmed', // Jika diisi, wajib confirmed
-            'role'                  => 'required|in:superadmin,owner,admin,kaprod,bahan,print,jahit,qc,finishing',
+            'password'              => 'nullable|string|min:6|confirmed',
+            'role'                  => ['required', Rule::in($allowedRoles)], // Validasi role target
             'cabang_id'             => 'nullable|exists:cabangs,id',
             'is_active'             => 'nullable|boolean',
         ], [
-            'password.confirmed'    => 'Konfirmasi password tidak cocok dengan password yang dimasukkan.',
+            'email.unique'          => 'Email login ini sudah digunakan oleh akun lain.',
+            'role.in'               => 'Anda tidak memiliki hak akses untuk menetapkan role ini.',
+            'password.min'          => 'Password baru minimal harus terdiri dari 6 karakter.',
+            'password.confirmed'    => 'Konfirmasi password tidak cocok.',
         ]);
 
         if (!empty($validated['password'])) {
@@ -76,13 +119,58 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', "Data user {$user->name} berhasil diperbarui!");
     }
 
-    // public function destroy(User $user)
-    // {
-    //     if (auth()->id() === $user->id) {
-    //         return back()->with('error', 'Tidak dapat menghapus akun Anda sendiri.');
-    //     }
+    public function destroy(User $user)
+    {
+        $currentUser = auth()->user();
 
-    //     $user->delete();
-    //     return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
-    // }
+        if ($currentUser->id === $user->id) {
+            return back()->with('error', 'Tidak dapat menghapus akun Anda sendiri.');
+        }
+
+        // Proteksi: Owner tidak boleh menghapus akun superadmin
+        if ($currentUser->role === 'owner' && $user->role === 'superadmin') {
+            abort(403, 'Anda tidak memiliki wewenang untuk menghapus akun Superadmin.');
+        }
+
+        $user->delete();
+        return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
+    }
+
+    /**
+     * Menampilkan halaman form ganti password user yang sedang login.
+     */
+    public function showChangePasswordForm()
+    {
+        return view('users.change-password');
+    }
+
+    /**
+     * Memproses update password baru user yang sedang login.
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password'      => 'required|string',
+            'password'              => 'required|string|min:6|confirmed',
+        ], [
+            'current_password.required' => 'Password lama wajib diisi.',
+            'password.required'         => 'Password baru wajib diisi.',
+            'password.min'              => 'Password baru minimal harus terdiri dari 6 karakter.',
+            'password.confirmed'        => 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        $user = auth()->user();
+
+        // Cek apakah password lama sesuai
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'Password lama yang Anda masukkan salah.']);
+        }
+
+        // Update password baru
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->route('password.change')->with('success', 'Password akun Anda berhasil diperbarui!');
+    }
 }

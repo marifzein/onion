@@ -24,6 +24,15 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('dashboard');
     });
 
+
+    // Route Ganti Password Akun Login
+    Route::get('/password/change', [UserController::class, 'showChangePasswordForm'])->name('password.change');
+    Route::put('/password/update', [UserController::class, 'updatePassword'])->name('password.update');
+    
+    // Route Ganti Avatar
+    Route::get('/avatar/change', [UserController::class, 'showChangeAvatarForm'])->name('avatar.change');
+    Route::put('/avatar/update', [UserController::class, 'updateAvatar'])->name('avatar.update');
+
     // Dashboard & Monitoring
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/monitoring', [DashboardController::class, 'summary'])->name('monitoring');

@@ -145,7 +145,14 @@
                     <td class="py-3 px-3 text-center font-black text-slate-400">
                         {{ $users->firstItem() + $idx }}
                     </td>
-                    <td class="py-3 px-3">
+                    <td class="py-3 px-3 flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full ring-1 ring-slate-300 bg-slate-900 text-white flex items-center justify-center font-black text-xs shrink-0 overflow-hidden uppercase">
+                            @if(!empty($u->avatar))
+                                <img src="{{ asset($u->avatar) }}" alt="{{ $u->name }}" class="w-full h-full object-cover">
+                            @else
+                                {{ strtoupper(substr($u->name, 0, 1)) }}
+                            @endif
+                        </div>
                         <p class="font-black text-black text-sm">{{ $u->name }}</p>
                     </td>
                     <td class="py-3 px-3 font-mono font-bold text-slate-600">
@@ -216,7 +223,7 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
         @keydown.escape.window="modalOpen = false"
     >
-        <div @click.outside="modalOpen = false" class="bg-white rounded-3xl border border-slate-300 shadow-2xl w-full max-w-md overflow-hidden p-6">
+        <div @click.outside="modalOpen = false" class="bg-white rounded-3xl border border-slate-300 shadow-2xl w-full max-w-md overflow-hidden p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-3 border-b border-slate-200">
                 <div class="flex items-center gap-2">
                     <i class="ph-bold ph-user-gear text-indigo-600 text-xl"></i>
@@ -227,11 +234,35 @@
                 </button>
             </div>
 
-            <form :action="formUrl" method="POST" @submit="handleSubmit($event)" class="mt-4 space-y-3.5 text-xs">
+            <!-- PERHATIKAN: Ditambahkan enctype="multipart/form-data" -->
+            <form :action="formUrl" method="POST" enctype="multipart/form-data" @submit="handleSubmit($event)" class="mt-4 space-y-3.5 text-xs">
                 @csrf
                 <template x-if="isEdit">
                     <input type="hidden" name="_method" value="PUT">
                 </template>
+
+                <!-- Input Upload Foto Avatar -->
+                <div>
+                    <label class="block font-black uppercase text-slate-700 mb-1">Foto Avatar Profil</label>
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full ring-2 ring-slate-300 bg-slate-900 text-white flex items-center justify-center font-black text-base shrink-0 overflow-hidden">
+                            <template x-if="avatarPreview">
+                                <img :src="avatarPreview" class="w-full h-full object-cover">
+                            </template>
+                            <template x-if="!avatarPreview">
+                                <span x-text="formData.name ? formData.name.charAt(0).toUpperCase() : 'U'"></span>
+                            </template>
+                        </div>
+                        <input
+                            type="file"
+                            name="avatar"
+                            accept="image/png, image/jpeg, image/jpg"
+                            @change="previewAvatar($event)"
+                            class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
+                        />
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1">Format: JPG, PNG, JPEG. Maksimal 2MB.</p>
+                </div>
 
                 <div id="tour-modal-name">
                     <label class="block font-black uppercase text-slate-700 mb-1">Nama Pengguna / Divisi <span class="text-rose-500">*</span></label>
@@ -394,7 +425,7 @@ function jalankanTourUserIndex() {
             element: '#tour-user-header',
             popover: { 
                 title: 'Manajemen Akun Pengguna', 
-                description: 'Halaman ini digunakan untuk mengelola akun login tim kerja di setiap divisi produksi (Bahan, Print, Jahit, QC, Finishing).', 
+                description: 'Halaman ini digunakan untuk mengelola akun login tim kerja di setiap divisi produksi.', 
                 side: "bottom", 
                 align: 'start' 
             } 
@@ -412,7 +443,7 @@ function jalankanTourUserIndex() {
             element: '#tour-btn-add-user',
             popover: { 
                 title: 'Tambah Akun Baru', 
-                description: 'Klik tombol ini untuk mendaftarkan akun divisi baru. (Catatan: Jika modal terbuka, panduan akan otomatis menyoroti bagian form di dalamnya).', 
+                description: 'Klik tombol ini untuk mendaftarkan akun divisi baru beserta foto avatarnya.', 
                 side: "bottom", 
                 align: 'end' 
             } 
@@ -421,7 +452,7 @@ function jalankanTourUserIndex() {
             element: '#tour-user-table',
             popover: { 
                 title: 'Daftar Akun & Hak Akses', 
-                description: 'Menampilkan nama akun, email login, divisi/role, cabang penugasan, serta tombol edit untuk memperbarui data.', 
+                description: 'Menampilkan avatar, nama akun, email login, divisi/role, cabang penugasan, serta tombol edit.', 
                 side: "top", 
                 align: 'start' 
             } 
@@ -456,6 +487,7 @@ function userManager() {
         modalOpen: false,
         isEdit: false,
         formUrl: '{{ route("users.store") }}',
+        avatarPreview: null,
         formData: {
             name: '',
             email: '',
@@ -464,6 +496,13 @@ function userManager() {
             password: '',
             password_confirmation: '',
             is_active: true,
+        },
+
+        previewAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                this.avatarPreview = URL.createObjectURL(file);
+            }
         },
 
         get passwordTooShort() {
@@ -489,6 +528,7 @@ function userManager() {
         openCreateModal() {
             this.isEdit = false;
             this.formUrl = '{{ route("users.store") }}';
+            this.avatarPreview = null;
             this.formData = {
                 name: '',
                 email: '',
@@ -504,6 +544,7 @@ function userManager() {
         openEditModal(user) {
             this.isEdit = true;
             this.formUrl = `/users/${user.id}`;
+            this.avatarPreview = user.avatar ? `/${user.avatar}` : null;
             this.formData = {
                 name: user.name,
                 email: user.email,
