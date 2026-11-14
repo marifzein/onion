@@ -44,10 +44,10 @@
     @endphp
 
     <!-- ==================== TOP BAR & HEADER ==================== -->
-    <header class="bg-white border-b border-slate-300 px-6 py-2.5 flex items-center justify-between shrink-0 shadow-xs z-30">
+    <header class="bg-white border-b border-slate-300 px-3 md:px-6 py-2.5 flex items-center justify-between shrink-0 shadow-xs z-30">
         <div class="flex items-center gap-2">
-            <div class="flex items-center gap-3">
-                <div class="h-12 w-auto flex items-center justify-center text-black shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="h-9 md:h-12 w-auto flex items-center justify-center text-black shrink-0">
                     <img
                         src="/img/onion_logo.jpg"
                         alt="ONION CREATIVE Logo"
@@ -56,12 +56,13 @@
                     />
                 </div>
                 <div>
-                    <div class="flex items-center gap-2.5">
-                        <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-500 text-white font-extrabold uppercase tracking-wider">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[9px] md:text-[11px] px-1.5 md:px-2 py-0.5 rounded-full bg-blue-500 text-white font-extrabold uppercase tracking-wider">
                             Display
                         </span>
                     </div>
-                    <p class="text-xs font-bold text-blue-500 tracking-wide mt-0.5">
+                    <!-- Teks panjang disembunyikan di HP terkecil agar muat, tampil rapi di sm ke atas -->
+                    <p class="hidden sm:block text-xs font-bold text-blue-500 tracking-wide mt-0.5">
                         Manajemen Antrean & Produksi
                     </p>
                 </div>
@@ -69,7 +70,7 @@
         </div>
 
         <!-- Right Header: Clock & User Profile with Dropdown -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 md:gap-4">
             <div class="hidden md:flex items-center gap-2 bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-xl text-xs font-black text-black">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
                 <span class="font-mono text-sm tracking-wide">{{ now()->translatedFormat('l, d M Y') }}</span>
@@ -77,16 +78,18 @@
 
             <!-- Dropdown Menu Profil -->
             <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                <!-- Tombol Trigger Profil -->
-                <button @click="open = !open" class="flex items-center gap-2.5 pl-2 border-l border-slate-300 cursor-pointer focus:outline-none group">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-sm font-black text-black leading-none group-hover:text-blue-600 transition">{{ $user->name ?? 'Admin Produksi' }}</p>
-                        <span class="text-[11px] text-slate-500 font-extrabold uppercase">{{ $role }}</span>
+                <!-- Tombol Trigger Profil: KELAS HIDDEN DIHAPUS SUPAYA MUNCUL DI HP -->
+                <button @click="open = !open" class="flex items-center gap-2 pl-2 border-l border-slate-300 cursor-pointer focus:outline-none group">
+                    <div class="text-right">
+                        <p class="text-xs md:text-sm font-black text-black leading-tight group-hover:text-blue-600 transition truncate max-w-[120px] md:max-w-none">
+                            {{ $user->name ?? 'Admin Produksi' }}
+                        </p>
+                        <span class="text-[10px] md:text-[11px] text-slate-500 font-extrabold uppercase block leading-none mt-0.5">
+                            {{ $role }}
+                        </span>
                     </div>
-                    {{-- <div class="w-9 h-9 rounded-full ring-2 ring-black bg-slate-900 text-white flex items-center justify-center font-black text-sm shrink-0 uppercase select-none shadow-xs group-hover:bg-blue-600 transition">
-                        {{ strtoupper(substr($user->name ?? 'Admin', 0, 1)) }}
-                    </div> --}}
-                    <div class="w-9 h-9 rounded-full ring-2 ring-black bg-slate-900 text-white flex items-center justify-center font-black text-sm shrink-0 uppercase select-none shadow-xs group-hover:bg-blue-600 transition overflow-hidden">       
+
+                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-full ring-2 ring-black bg-slate-900 text-white flex items-center justify-center font-black text-xs md:text-sm shrink-0 uppercase select-none shadow-xs group-hover:bg-blue-600 transition overflow-hidden">       
                         @if(!empty($user->avatar))
                             <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
                         @else
@@ -117,7 +120,7 @@
                         <span>Ganti Password</span>
                     </a>
 
-                    <!-- Link Ganti Avatar (BARU) -->
+                    <!-- Link Ganti Avatar -->
                     <a href="{{ route('avatar.change') }}" class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">
                         <i class="ph-bold ph-user-circle text-base text-slate-400"></i>
                         <span>Ganti Foto Avatar</span>
