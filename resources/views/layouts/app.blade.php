@@ -269,41 +269,48 @@
 
     <!-- ==================== MOBILE BOTTOM BAR ==================== -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-300 px-2 flex items-center justify-around z-50 shadow-lg">
+        
+        <!-- 1. Beranda / Dashboard (Selalu ada untuk semua) -->
         <a href="/dashboard" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->is('dashboard') ? 'text-black font-black' : 'text-slate-400' }}">
             <i class="ph-bold ph-house text-xl"></i>
             <span>Beranda</span>
         </a>
 
-        <a href="/monitoring" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->is('monitoring*') ? 'text-black font-black' : 'text-slate-400' }}">
+        <!-- 2. Monitoring (Selalu ada untuk semua) -->
+        {{-- <a href="/monitoring" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->is('monitoring*') ? 'text-black font-black' : 'text-slate-400' }}">
             <i class="ph-bold ph-monitor text-xl"></i>
             <span>Monitoring</span>
-        </a>
+        </a> --}}
 
+        <!-- 3. Update Status (Khusus Divisi Produksi: Bahan, Print, Jahit, QC, Finishing, Ka Prod) -->
         @if($canUpdateStatus)
             <a href="/update-status" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->is('update-status*') ? 'text-black font-black' : 'text-slate-400' }}">
                 <i class="ph-bold ph-check-square-offset text-xl"></i>
                 <span>Update Status</span>
             </a>
         @else
+            <!-- Jika Admin/Owner buka lewat HP, tombol Update Status dinonaktifkan atau diarahkan ke notifikasi -->
             <button
                 type="button"
                 onclick="Swal.fire({
-                    title: 'Akses Dibatasi',
-                    text: 'Role {{ strtoupper($role) }} hanya memonitor dan tidak mengisi checklist update divisi.',
+                    title: 'Akses Khusus Divisi',
+                    text: 'Menu Update Status di HP dikhususkan untuk operator divisi lapangan (Bahan s/d QC).',
                     icon: 'info',
                     confirmButtonColor: '#000000'
                 })"
-                class="flex flex-col items-center gap-1 text-[11px] font-bold text-slate-300 opacity-50 cursor-not-allowed"
+                class="flex flex-col items-center gap-1 text-[11px] font-bold text-slate-300 opacity-60 cursor-pointer"
             >
                 <i class="ph-bold ph-prohibit text-xl"></i>
                 <span>Update Status</span>
             </button>
         @endif
 
-        <a href="/profile" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->is('profile*') ? 'text-black font-black' : 'text-slate-400' }}">
+        <!-- 4. Profil / Akun (Untuk ganti password / logout) -->
+        <a href="{{ route('password.change') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->is('password*') ? 'text-black font-black' : 'text-slate-400' }}">
             <i class="ph-bold ph-user text-xl"></i>
             <span>Profil</span>
         </a>
+
     </nav>
 
     <script>
