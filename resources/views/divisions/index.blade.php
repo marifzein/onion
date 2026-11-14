@@ -445,7 +445,7 @@ function jalankanTourUpdateStatus() {
             element: '#tour-div-stats',
             popover: { 
                 title: 'Ringkasan Beban Kerja', 
-                description: 'Pantau cepat jumlah total SPK di antrean, berapa pesanan yang sudah selesai pada divisi ini, dan berapa yang masih menunggu dikerjakan.', 
+                description: 'Pantau cepat jumlah total SO di antrean, berapa pesanan yang sudah selesai pada divisi ini, dan berapa yang masih menunggu dikerjakan.', 
                 side: "bottom", 
                 align: 'end' 
             } 
@@ -472,7 +472,7 @@ function jalankanTourUpdateStatus() {
             element: document.getElementById('tour-first-checkbox') ? '#tour-first-checkbox' : '#tour-col-check',
             popover: { 
                 title: 'Centang Selesai (Aksi Cek)', 
-                description: 'Klik kotak centang ini saat pekerjaan di divisi Anda telah rampung 100% agar SPK otomatis diteruskan ke divisi berikutnya.', 
+                description: 'Klik kotak centang ini saat pekerjaan di divisi Anda telah selesai 100% agar SO otomatis diteruskan ke divisi berikutnya.', 
                 side: "left", 
                 align: 'center' 
             } 
