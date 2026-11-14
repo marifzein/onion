@@ -12,8 +12,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS CDN -->
-    {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    {{--  tailwind 3 --}}
+    <script src="{{ asset('js/tailwindcss.js') }}"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -29,9 +30,24 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="{{ asset('js/alpine.min.js') }}"></script>
     <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
+    {{-- driver.js tour guide --}}
+    <link rel="stylesheet" href="{{ asset('css/driver.css') }}">
+    <script src="{{ asset('js/driver.js.iife.js') }}"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
 </head>
 <body class="bg-[#F4F6FB] text-slate-800 antialiased h-screen w-screen flex flex-col font-sans select-none overflow-hidden">
 
@@ -81,12 +97,8 @@
                     <p class="text-sm font-black text-black leading-none">{{ $user->name ?? 'Admin Produksi' }}</p>
                     <span class="text-[11px] text-black font-extrabold uppercase">{{ $role }}</span>
                 </div>
-                <div class="w-9 h-9 rounded-full ring-2 ring-black overflow-hidden bg-slate-200 shrink-0">
-                    <img
-                        src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
-                        alt="Avatar"
-                        class="w-full h-full object-cover"
-                    />
+                <div class="w-9 h-9 rounded-full ring-2 ring-black bg-slate-900 text-white flex items-center justify-center font-black text-sm shrink-0 uppercase select-none shadow-xs">
+                    {{ strtoupper(substr($user->name ?? 'Admin', 0, 1)) }}
                 </div>
             </div>
         </div>

@@ -1,16 +1,78 @@
 @extends('layouts.app', ['title' => 'ONION CREATIVE - Master Customer'])
 
 @section('content')
+<!-- Driver.js Assets (CSS & JS Lokal) -->
+<link rel="stylesheet" href="{{ asset('css/driver.css') }}">
+<script src="{{ asset('js/driver.js.iife.js') }}"></script>
+
+<style>
+    /* Animasi Berdenyut Tombol Panduan Oranye */
+    @keyframes pulseOrange {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.65); }
+        70% { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(249, 115, 22, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+    }
+    .btn-pulse-orange {
+        animation: pulseOrange 2s infinite;
+    }
+    .btn-pulse-orange:hover {
+        animation: none;
+        transform: scale(1.1);
+    }
+
+    /* Styling Popover Driver.js ala TataKas */
+    .driver-popover .driver-popover-next-btn,
+    .driver-popover .driver-popover-done-btn {
+        background-color: #10b981 !important;
+        color: #ffffff !important;
+        border: none !important;
+        text-shadow: none !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        padding: 6px 14px !important;
+        border-radius: 8px !important;
+    }
+    .driver-popover .driver-popover-next-btn:hover,
+    .driver-popover .driver-popover-done-btn:hover {
+        background-color: #059669 !important;
+    }
+    .driver-popover .driver-popover-prev-btn {
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        padding: 6px 14px !important;
+        border-radius: 8px !important;
+    }
+    .driver-popover {
+        border-radius: 16px !important;
+        padding: 16px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15) !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+    .driver-popover-title {
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        font-size: 15px !important;
+    }
+    .driver-popover-description {
+        color: #64748b !important;
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+    }
+</style>
+
 <div class="max-w-7xl w-full mx-auto space-y-5">
     
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
+        <div id="tour-cust-header">
             <h1 class="text-2xl font-black text-black tracking-tight">Master Customer</h1>
             <p class="text-xs font-bold text-slate-500">Database kontak pelanggan & instansi pemesan</p>
         </div>
 
         <div class="flex items-center gap-3">
-            <form action="{{ route('customers.index') }}" method="GET" class="relative">
+            <form id="tour-cust-search" action="{{ route('customers.index') }}" method="GET" class="relative">
                 <input
                     type="text"
                     name="search"
@@ -21,7 +83,7 @@
                 <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
             </form>
 
-            <a href="{{ route('customers.create') }}" class="px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-xs transition-all">
+            <a id="tour-btn-add-cust" href="{{ route('customers.create') }}" class="px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-xs transition-all">
                 <i class="ph-bold ph-plus text-emerald-400 text-sm"></i>
                 <span>Tambah Customer</span>
             </a>
@@ -35,17 +97,17 @@
     </div>
     @endif
 
-    <div class="bg-white rounded-2xl border border-slate-300 shadow-xs overflow-hidden">
+    <div id="tour-cust-table" class="bg-white rounded-2xl border border-slate-300 shadow-xs overflow-hidden">
         <table class="w-full border-collapse text-left">
             <thead class="bg-slate-100 border-b border-slate-300 text-black text-xs font-black uppercase tracking-wider">
                 <tr>
                     <th class="py-3 px-4 w-12 text-center">No</th>
-                    <th class="py-3 px-4">Nama Customer / Instansi</th>
+                    <th id="tour-col-cust-name" class="py-3 px-4">Nama Customer / Instansi</th>
                     <th class="py-3 px-4">PIC</th>
-                    <th class="py-3 px-4 w-44">No. Telepon / WA</th>
-                    <th class="py-3 px-4">Alamat</th>
-                    <th class="py-3 px-4 w-24 text-center">Status</th>
-                    <th class="py-3 px-4 w-24 text-center">Aksi</th>
+                    <th id="tour-col-cust-phone" class="py-3 px-4 w-44">No. Telepon / WA</th>
+                    <th id="tour-col-cust-addr" class="py-3 px-4">Alamat</th>
+                    <th id="tour-col-cust-status" class="py-3 px-4 w-24 text-center">Status</th>
+                    <th id="tour-col-cust-action" class="py-3 px-4 w-24 text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 text-sm font-medium">
@@ -83,13 +145,6 @@
                             <a href="{{ route('customers.edit', $c->id) }}" class="p-1.5 text-slate-600 hover:text-black hover:bg-slate-100 rounded-lg" title="Edit">
                                 <i class="ph-bold ph-pencil-simple text-base"></i>
                             </a>
-                            {{-- <form action="{{ route('customers.destroy', $c->id) }}" method="POST" onsubmit="return confirm('Hapus pelanggan ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer" title="Hapus">
-                                    <i class="ph-bold ph-trash text-base"></i>
-                                </button>
-                            </form> --}}
                         </div>
                     </td>
                 </tr>
@@ -111,4 +166,83 @@
     </div>
 
 </div>
+
+<!-- TOMBOL BANTUAN "?" MELAYANG ORANYE BERDENYUT DI POJOK KANAN BAWAH -->
+<button 
+    type="button" 
+    onclick="jalankanTourCustomerIndex()" 
+    title="Panduan Master Customer"
+    class="btn-pulse-orange fixed bottom-6 right-6 z-[9999] w-11 h-11 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-lg shadow-lg flex items-center justify-center cursor-pointer transition-colors"
+>
+    ?
+</button>
+
+<script>
+function jalankanTourCustomerIndex() {
+    const driverFactory = window.driver?.js?.driver || window.driver;
+    if (!driverFactory) {
+        alert('Panduan sedang memuat, silakan klik sekali lagi.');
+        return;
+    }
+
+    const driverObj = driverFactory({
+        showProgress: true,
+        allowClose: true,
+        overlayColor: 'rgba(0, 0, 0, 0.75)',
+        nextBtnText: 'Lanjut &rarr;',
+        prevBtnText: '&larr; Kembali',
+        doneBtnText: 'Selesai',
+        steps: [
+            { 
+                element: '#tour-cust-header',
+                popover: { 
+                    title: 'Master Customer', 
+                    description: 'Halaman ini menyimpan seluruh data database pelanggan dan instansi pemesan jersey.', 
+                    side: "bottom", 
+                    align: 'start' 
+                } 
+            },
+            { 
+                element: '#tour-cust-search',
+                popover: { 
+                    title: 'Pencarian Pelanggan', 
+                    description: 'Cari data pelanggan dengan cepat berdasarkan nama, nomor telepon, atau alamat.', 
+                    side: "bottom", 
+                    align: 'start' 
+                } 
+            },
+            { 
+                element: '#tour-btn-add-cust',
+                popover: { 
+                    title: 'Tambah Customer Baru', 
+                    description: 'Klik untuk mendaftarkan pelanggan atau instansi baru ke dalam sistem.', 
+                    side: "bottom", 
+                    align: 'end' 
+                } 
+            },
+            { 
+                element: '#tour-cust-table',
+                popover: { 
+                    title: 'Daftar Kontak Customer', 
+                    description: 'Menampilkan nama perusahaan, PIC, nomor WhatsApp, alamat, dan status keaktifan akun pelanggan.', 
+                    side: "top", 
+                    align: 'start' 
+                } 
+            }
+        ]
+    });
+
+    driverObj.drive();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const hasSeenTour = localStorage.getItem('onion_customer_index_tour_seen');
+    if (!hasSeenTour) {
+        setTimeout(() => {
+            jalankanTourCustomerIndex();
+            localStorage.setItem('onion_customer_index_tour_seen', 'true');
+        }, 600);
+    }
+});
+</script>
 @endsection

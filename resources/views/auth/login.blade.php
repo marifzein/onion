@@ -8,17 +8,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-    {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
+    
+    {{--  tailwind 3 --}}
+    <script src="{{ asset('js/tailwindcss.js') }}"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
+    
+    <!-- Phosphor Icons CDN Stable -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Alpine.js Lokal (Tetap gunakan defer) -->
+    <script defer src="{{ asset('js/alpine.min.js') }}"></script>
+
+    <!-- SweetAlert2 Lokal -->
+    <script src="{{ asset('js/sweetalert2.all.min.js') }}"></script>
 
     <!-- Driver.js Assets (CSS & JS via CDN) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+    {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script> --}}
+    <link rel="stylesheet" href="{{ asset('css/driver.css') }}">
+    <script src="{{ asset('js/driver.js.iife.js') }}"></script>
 
     <style>
         [x-cloak] { display: none !important; }

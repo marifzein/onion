@@ -1,18 +1,80 @@
 @extends('layouts.app', ['title' => 'ONION CREATIVE - Manajemen User Divisi'])
 
 @section('content')
+<!-- Driver.js Assets (CSS & JS Lokal) -->
+<link rel="stylesheet" href="{{ asset('css/driver.css') }}">
+<script src="{{ asset('js/driver.js.iife.js') }}"></script>
+
+<style>
+    /* Animasi Berdenyut Tombol Panduan Oranye */
+    @keyframes pulseOrange {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.65); }
+        70% { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(249, 115, 22, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+    }
+    .btn-pulse-orange {
+        animation: pulseOrange 2s infinite;
+    }
+    .btn-pulse-orange:hover {
+        animation: none;
+        transform: scale(1.1);
+    }
+
+    /* Styling Popover Driver.js ala TataKas */
+    .driver-popover .driver-popover-next-btn,
+    .driver-popover .driver-popover-done-btn {
+        background-color: #10b981 !important;
+        color: #ffffff !important;
+        border: none !important;
+        text-shadow: none !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        padding: 6px 14px !important;
+        border-radius: 8px !important;
+    }
+    .driver-popover .driver-popover-next-btn:hover,
+    .driver-popover .driver-popover-done-btn:hover {
+        background-color: #059669 !important;
+    }
+    .driver-popover .driver-popover-prev-btn {
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        padding: 6px 14px !important;
+        border-radius: 8px !important;
+    }
+    .driver-popover {
+        border-radius: 16px !important;
+        padding: 16px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15) !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+    .driver-popover-title {
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        font-size: 15px !important;
+    }
+    .driver-popover-description {
+        color: #64748b !important;
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+    }
+</style>
+
 <div x-data="userManager()" class="max-w-7xl w-full mx-auto space-y-4">
 
     <!-- Top Action & Info -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
+        <div id="tour-user-header">
             <h1 class="text-2xl font-black text-black tracking-tight">Akun Pengguna & Divisi</h1>
             <p class="text-xs font-bold text-slate-500">Kelola 1 akun tim kerja per divisi produksi (Bahan, Print, Jahit, QC, Finishing)</p>
         </div>
 
         <div class="flex items-center gap-2">
             <!-- Search Form -->
-            <form method="GET" action="{{ route('users.index') }}" class="relative">
+            <form id="tour-user-search" method="GET" action="{{ route('users.index') }}" class="relative">
                 <input
                     type="text"
                     name="search"
@@ -25,6 +87,7 @@
 
             <!-- Tombol Tambah -->
             <button
+                id="tour-btn-add-user"
                 type="button"
                 @click="openCreateModal()"
                 class="px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-black shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
@@ -63,17 +126,17 @@
     @endif
 
     <!-- Tabel User -->
-    <div class="bg-white rounded-2xl border border-slate-300 shadow-xs overflow-hidden">
+    <div id="tour-user-table" class="bg-white rounded-2xl border border-slate-300 shadow-xs overflow-hidden">
         <table class="w-full border-collapse text-left text-xs">
             <thead class="bg-slate-50/80 border-b border-slate-300 text-slate-600 font-black uppercase tracking-wider">
                 <tr>
                     <th class="py-3 px-3 text-center w-10">NO</th>
-                    <th class="py-3 px-3">NAMA AKUN</th>
-                    <th class="py-3 px-3">EMAIL LOGIN</th>
-                    <th class="py-3 px-3">DIVISI / ROLE</th>
-                    <th class="py-3 px-3">CABANG</th>
-                    <th class="py-3 px-3 text-center">STATUS</th>
-                    <th class="py-3 px-3 text-center w-20">AKSI</th>
+                    <th id="tour-col-name" class="py-3 px-3">NAMA AKUN</th>
+                    <th id="tour-col-email" class="py-3 px-3">EMAIL LOGIN</th>
+                    <th id="tour-col-role" class="py-3 px-3">DIVISI / ROLE</th>
+                    <th id="tour-col-branch" class="py-3 px-3">CABANG</th>
+                    <th id="tour-col-status" class="py-3 px-3 text-center">STATUS</th>
+                    <th id="tour-col-action" class="py-3 px-3 text-center w-20">AKSI</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-200">
@@ -170,7 +233,7 @@
                     <input type="hidden" name="_method" value="PUT">
                 </template>
 
-                <div>
+                <div id="tour-modal-name">
                     <label class="block font-black uppercase text-slate-700 mb-1">Nama Pengguna / Divisi <span class="text-rose-500">*</span></label>
                     <input
                         type="text"
@@ -182,7 +245,7 @@
                     />
                 </div>
 
-                <div>
+                <div id="tour-modal-email">
                     <label class="block font-black uppercase text-slate-700 mb-1">Email Login <span class="text-rose-500">*</span></label>
                     <input
                         type="email"
@@ -194,7 +257,7 @@
                     />
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div id="tour-modal-role-branch" class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-black uppercase text-slate-700 mb-1">Role / Divisi <span class="text-rose-500">*</span></label>
                         <select
@@ -224,7 +287,7 @@
                 </div>
 
                 <!-- Input Password & Konfirmasi Password Berdampingan -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div id="tour-modal-password" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block font-black uppercase text-slate-700 mb-1">
                             Password <span x-show="!isEdit" class="text-rose-500">*</span>
@@ -271,7 +334,7 @@
                     </p>
                 </div>
 
-                <div class="flex items-center gap-2 pt-1">
+                <div id="tour-modal-active" class="flex items-center gap-2 pt-1">
                     <input
                         type="checkbox"
                         id="is_active"
@@ -288,6 +351,7 @@
                         Batal
                     </button>
                     <button 
+                        id="tour-modal-submit"
                         type="submit" 
                         :disabled="hasFormError"
                         :class="hasFormError ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800'"
@@ -307,7 +371,86 @@
     </form>
 </div>
 
+<!-- TOMBOL BANTUAN "?" MELAYANG ORANYE BERDENYUT DI POJOK KANAN BAWAH -->
+<button 
+    type="button" 
+    onclick="jalankanTourUserIndex()" 
+    title="Panduan Manajemen User"
+    class="btn-pulse-orange fixed bottom-6 right-6 z-[9999] w-11 h-11 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-lg shadow-lg flex items-center justify-center cursor-pointer transition-colors"
+>
+    ?
+</button>
+
 <script>
+function jalankanTourUserIndex() {
+    const driverFactory = window.driver?.js?.driver || window.driver;
+    if (!driverFactory) {
+        alert('Panduan sedang memuat, silakan klik sekali lagi.');
+        return;
+    }
+
+    const steps = [
+        { 
+            element: '#tour-user-header',
+            popover: { 
+                title: 'Manajemen Akun Pengguna', 
+                description: 'Halaman ini digunakan untuk mengelola akun login tim kerja di setiap divisi produksi (Bahan, Print, Jahit, QC, Finishing).', 
+                side: "bottom", 
+                align: 'start' 
+            } 
+        },
+        { 
+            element: '#tour-user-search',
+            popover: { 
+                title: 'Pencarian User', 
+                description: 'Cari akun staf atau divisi tertentu berdasarkan nama, email, atau role.', 
+                side: "bottom", 
+                align: 'start' 
+            } 
+        },
+        { 
+            element: '#tour-btn-add-user',
+            popover: { 
+                title: 'Tambah Akun Baru', 
+                description: 'Klik tombol ini untuk mendaftarkan akun divisi baru. (Catatan: Jika modal terbuka, panduan akan otomatis menyoroti bagian form di dalamnya).', 
+                side: "bottom", 
+                align: 'end' 
+            } 
+        },
+        { 
+            element: '#tour-user-table',
+            popover: { 
+                title: 'Daftar Akun & Hak Akses', 
+                description: 'Menampilkan nama akun, email login, divisi/role, cabang penugasan, serta tombol edit untuk memperbarui data.', 
+                side: "top", 
+                align: 'start' 
+            } 
+        }
+    ];
+
+    const driverObj = driverFactory({
+        showProgress: true,
+        allowClose: true,
+        overlayColor: 'rgba(0, 0, 0, 0.75)',
+        nextBtnText: 'Lanjut &rarr;',
+        prevBtnText: '&larr; Kembali',
+        doneBtnText: 'Selesai',
+        steps: steps
+    });
+
+    driverObj.drive();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const hasSeenTour = localStorage.getItem('onion_user_index_tour_seen');
+    if (!hasSeenTour) {
+        setTimeout(() => {
+            jalankanTourUserIndex();
+            localStorage.setItem('onion_user_index_tour_seen', 'true');
+        }, 600);
+    }
+});
+
 function userManager() {
     return {
         modalOpen: false,
@@ -323,13 +466,11 @@ function userManager() {
             is_active: true,
         },
 
-        // Validasi panjang password minimal 6 karakter
         get passwordTooShort() {
             if (!this.formData.password) return false;
             return this.formData.password.length < 6;
         },
 
-        // Cek ketidakcocokan password secara reaktif
         get passwordMismatch() {
             if (!this.formData.password && !this.formData.password_confirmation) return false;
             return this.formData.password !== this.formData.password_confirmation;
