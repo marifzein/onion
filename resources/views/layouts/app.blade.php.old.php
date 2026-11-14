@@ -44,9 +44,9 @@
     @endphp
 
     <!-- ==================== TOP BAR & HEADER ==================== -->
-    <header class="bg-white border-b border-slate-300 px-3 md:px-6 py-2 flex items-center justify-between shrink-0 shadow-xs z-30">
+    <header class="bg-white border-b border-slate-300 px-3 md:px-6 py-2.5 flex items-center justify-between shrink-0 shadow-xs z-30">
         <div class="flex items-center gap-2">
-            <div class="flex items-center gap-2 md:gap-3">
+            <div class="flex items-center gap-2.5">
                 <div class="h-8 md:h-12 w-auto flex items-center justify-center text-black shrink-0">
                     <img
                         src="/img/onion_logo.jpg"
@@ -56,13 +56,12 @@
                     />
                 </div>
                 <div>
-                    <div class="flex items-center gap-1.5 md:gap-2.5">
+                    <div class="flex items-center gap-1.5">
                         <span class="text-[9px] md:text-[11px] px-1.5 md:px-2 py-0.5 rounded-full bg-blue-500 text-white font-extrabold uppercase tracking-wider">
                             Display
                         </span>
                     </div>
-                    <!-- Sembunyikan teks panjang di HP, tampilkan rapi di tablet/desktop -->
-                    <p class="hidden sm:block text-xs font-bold text-blue-500 tracking-wide mt-0.5">
+                    <p class="text-[10px] sm:text-xs font-bold text-blue-500 tracking-wide mt-0.5">
                         Manajemen Antrean & Produksi
                     </p>
                 </div>
@@ -78,14 +77,17 @@
 
             <!-- Dropdown Menu Profil -->
             <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                <!-- Tombol Trigger Profil (Nama user sekarang dimunculkan juga secara ringkas di HP) -->
-                <button @click="open = !open" class="flex items-center gap-2 pl-1.5 md:pl-2 border-l border-slate-300 cursor-pointer focus:outline-none group">
-                    <div class="text-right">
-                        <p class="text-xs md:text-sm font-black text-black leading-none group-hover:text-blue-600 transition truncate max-w-[100px] md:max-w-none">{{ $user->name ?? 'Admin' }}</p>
-                        <span class-[10px] md:text-[11px] text-slate-500 font-extrabold uppercase">{{ $role }}</span>
-                    </div>
+                <!-- Tombol Trigger Profil -->
+                <button @click="open = !open" class="flex items-center gap-2 pl-2 border-l border-slate-300 cursor-pointer focus:outline-none group">
                     
-                    <div class="w-8 h-8 md:w-9 md:h-9 rounded-full ring-2 ring-black bg-slate-900 text-white flex items-center justify-center font-black text-xs md:text-sm shrink-0 uppercase select-none shadow-xs group-hover:bg-blue-600 transition overflow-hidden">       
+                    <!-- Teks Nama & Role: Muncul di Desktop, dan versi ringkas/rapi di Mobile -->
+                    <div class="text-right">
+                        <p class="text-xs md:text-sm font-black text-black leading-tight group-hover:text-blue-600 transition truncate max-w-[110px] sm:max-w-none">{{ $user->name ?? 'Admin' }}</p>
+                        <span class="text-[10px] md:text-[11px] text-slate-500 font-extrabold uppercase block leading-none mt-0.5">{{ $role }}</span>
+                    </div>
+
+                    <!-- Avatar / Inisial -->
+                    <div class="w-9 h-9 md:w-10 md:h-10 rounded-full ring-2 ring-black bg-slate-900 text-white flex items-center justify-center font-black text-xs md:text-sm shrink-0 uppercase select-none shadow-xs group-hover:bg-blue-600 transition overflow-hidden">       
                         @if(!empty($user->avatar))
                             <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
                         @else
