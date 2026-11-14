@@ -114,23 +114,20 @@
     $currentDivIndex = array_search($activeDivision, $stageFlow);
 @endphp
 
-<div x-data="divisionManager()" class="h-full w-full flex flex-col justify-between overflow-hidden">
+<div x-data="divisionManager()" class="h-full w-full flex flex-col justify-between overflow-hidden pb-16 md:pb-0">
     
     <!-- SUB-BAR / HEADER DIVISI -->
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-2 shrink-0">
-        <div id="tour-div-header" class="flex items-center gap-3">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-2 mb-2 shrink-0">
+        <div id="tour-div-header" class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
             <span class="text-xs px-3 py-1 rounded-full text-white font-black uppercase tracking-wider {{ $config['badge_bg'] }} shadow-xs flex items-center gap-1.5">
                 <i class="ph-bold ph-shield-check"></i> {{ $config['name'] }}
-            </span>
-            <span class="text-xs font-bold text-slate-500 hidden md:inline">
-                {{ $config['sub'] }}
             </span>
 
             @if(in_array($user->role, ['admin', 'superadmin']))
                 <select 
                     id="tour-div-switcher"
                     onchange="window.location.href='/update-status?div=' + this.value"
-                    class="ml-2 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-black text-black outline-none focus:border-black cursor-pointer shadow-xs"
+                    class="px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-black text-black outline-none focus:border-black cursor-pointer shadow-xs"
                 >
                     <option value="kaprod" {{ $activeDivision == 'kaprod' ? 'selected' : '' }}>Ka Prod</option>
                     <option value="bahan" {{ $activeDivision == 'bahan' ? 'selected' : '' }}>Divisi Bahan</option>
@@ -150,7 +147,7 @@
             })->count();
             $pendingCount = $totalCount - $doneCount;
         @endphp
-        <div id="tour-div-stats" class="flex items-center gap-2 bg-white border border-slate-300 px-3 py-1 rounded-xl text-xs font-bold text-slate-700 shadow-xs">
+        <div id="tour-div-stats" class="flex items-center justify-center gap-2 bg-white border border-slate-300 px-3 py-1 rounded-xl text-[11px] font-bold text-slate-700 shadow-xs w-full sm:w-auto">
             <span>Antrean: <strong class="text-black">{{ $totalCount }}</strong></span>
             <span class="text-slate-300">|</span>
             <span class="text-emerald-700">Selesai: <strong>{{ $doneCount }}</strong></span>
@@ -159,30 +156,32 @@
         </div>
     </div>
 
-    <!-- TABEL ORDERAN -->
+    <!-- DAFTAR ORDERAN (RESPONSIF: TABEL UNTUK DESKTOP, CARD UNTUK HP) -->
     <div id="tour-div-table" class="bg-white rounded-2xl border border-slate-300 shadow-xs flex-1 flex flex-col overflow-hidden">
-        <div id="tour-strict-info" class="px-5 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+        <div id="tour-strict-info" class="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <p class="text-xs font-bold text-slate-600">
-                    Beri centang saat pesanan <strong class="text-black">selesai pada {{ $config['name'] }}</strong> untuk meneruskan ke divisi berikutnya. <span class="text-indigo-600 font-semibold">(Klik baris order untuk melihat detail lengkap)</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                <p class="text-[11px] md:text-xs font-bold text-slate-600 leading-tight">
+                    Centang saat selesai pada <strong class="text-black">{{ $config['name'] }}</strong>. <span class="text-indigo-600 hidden sm:inline">(Klik baris untuk detail)</span>
                 </p>
             </div>
-            <div class="text-[11px] font-semibold text-slate-400">Rantai Produksi Berurutan (Strict Flow)</div>
+            <div class="text-[10px] font-semibold text-slate-400 hidden sm:block">Strict Flow</div>
         </div>
 
-        <div class="flex-1 overflow-y-auto">
-            <table class="w-full border-collapse table-fixed text-xs">
+        <div class="flex-1 overflow-y-auto p-2 md:p-0">
+            
+            <!-- ================= TAMPILAN DESKTOP (TABEL) ================= -->
+            <table class="w-full border-collapse table-fixed text-xs hidden md:table">
                 <thead class="bg-slate-100 border-b border-slate-300 sticky top-0 z-10">
-                    <tr class="text-black text-xs md:text-sm font-black uppercase tracking-wider text-left">
-                        <th class="py-2.5 px-3 w-[4%] text-center">No</th>
-                        <th class="py-2.5 px-3 w-[25%]">No. SO & Customer</th>
-                        <th class="py-2.5 px-3 w-[20%]">Fabric, Size & Qty</th>
-                        <th class="py-2.5 px-3 w-[14%]">Order Out</th>
-                        <th id="tour-col-prev" class="py-2.5 px-3 w-[13%] text-center">Tahap Sebelumnya</th>
-                        <th id="tour-col-status" class="py-2.5 px-3 w-[12%] text-center">Status</th>
-                        <th id="tour-col-check" class="py-2.5 px-3 w-[7%] text-center">Aksi Cek</th>
-                        <th id="tour-col-edit" class="py-2.5 px-2 w-[5%] text-center">Edit</th>
+                    <tr class="text-black text-xs font-black uppercase tracking-wider text-left">
+                        <th class="py-2.5 px-3 w-[5%] text-center">No</th>
+                        <th class="py-2.5 px-3 w-[26%]" id="tour-col-prev">No. SO & Customer</th>
+                        <th class="py-2.5 px-3 w-[18%]">Fabric & Qty</th>
+                        <th class="py-2.5 px-3 w-[15%]">Order Out</th>
+                        <th class="py-2.5 px-3 w-[15%] text-center">Tahap Sebelumnya</th>
+                        <th class="py-2.5 px-3 w-[11%] text-center" id="tour-col-status">Status</th>
+                        <th class="py-2.5 px-3 w-[5%] text-center" id="tour-col-check">Cek</th>
+                        <th class="py-2.5 px-2 w-[5%] text-center" id="tour-col-edit">Edit</th>
                     </tr>
                 </thead>
 
@@ -228,102 +227,55 @@
                         @click="openDetail({{ json_encode($mappedOrder) }})"
                         class="transition-colors cursor-pointer group {{ $isPast ? 'bg-emerald-50/30' : ($isWaiting ? 'bg-slate-50/50 opacity-60' : 'hover:bg-indigo-50/40') }}"
                     >
-                        <!-- No -->
-                        <td class="py-2.5 px-3 text-center font-black text-black text-sm">
-                            {{ $idx + 1 }}
-                        </td>
-
-                        <!-- No. SO & Customer -->
+                        <td class="py-2.5 px-3 text-center font-black text-black text-sm">{{ $idx + 1 }}</td>
                         <td class="py-2.5 px-3">
                             <div class="truncate">
                                 <p class="text-sm font-black text-black leading-tight flex items-center gap-1.5">
                                     <span>{{ $custName }}</span>
-                                    <i class="ph-bold ph-arrow-square-out text-slate-400 group-hover:text-indigo-600 text-xs transition-colors"></i>
+                                    <i class="ph-bold ph-arrow-square-out text-slate-400 group-hover:text-indigo-600 text-xs"></i>
                                 </p>
-                                <div class="flex items-center gap-2 mt-0.5">
-                                    <span class="text-[11px] font-mono font-bold text-slate-600">{{ $order->no_so }}</span>
-                                    <span class="text-[11px] text-slate-500 font-semibold">&bull; {{ $order->order_type ?? 'Atasan Fullprint' }}</span>
-                                </div>
+                                <span class="text-[11px] font-mono font-bold text-slate-600">{{ $order->no_so }}</span>
                             </div>
                         </td>
-
-                        <!-- Fabric & Qty -->
                         <td class="py-2.5 px-3">
-                            <div class="truncate">
-                                <p class="text-xs font-black text-black">{{ $order->fabric_type ?? '-' }}</p>
-                                <p class="text-xs font-black text-indigo-700 leading-tight">
-                                    TOTAL: {{ $order->qty }} {{ strtoupper($order->satuan) }}
-                                    @if($progress?->completed_qty)
-                                        <span class="text-emerald-700 font-bold">({{ $progress->completed_qty }} ok)</span>
-                                    @endif
-                                </p>
-                            </div>
+                            <p class="text-xs font-black text-black">{{ $order->fabric_type ?? '-' }}</p>
+                            <p class="text-xs font-black text-indigo-700">{{ $order->qty }} {{ strtoupper($order->satuan) }}</p>
                         </td>
-
-                        <!-- Order Out -->
                         <td class="py-2.5 px-3">
-                            <p class="text-sm font-black leading-tight {{ $isUrgent ? 'text-rose-600' : 'text-slate-800' }}">
+                            <p class="text-xs font-black {{ $isUrgent ? 'text-rose-600' : 'text-slate-800' }}">
                                 {{ \Carbon\Carbon::parse($order->target_deadline)->translatedFormat('d M Y') }}
                             </p>
-                            <span class="text-[10px] font-black uppercase {{ $isUrgent ? 'text-rose-600' : 'text-slate-500' }}">
-                                {{ \Carbon\Carbon::parse($order->target_deadline)->diffForHumans() }}
-                            </span>
                         </td>
-
-                        <!-- Tahap Sebelumnya -->
                         <td class="py-2.5 px-3 text-center" @click.stop>
                             @if($isWaiting)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                    <i class="ph-bold ph-hourglass text-xs"></i> Belum Selesai
-                                </span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Belum Selesai</span>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black bg-lime-100 text-lime-800 border border-lime-300 shadow-2xs">
-                                    <i class="ph-bold ph-check-circle text-lime-600"></i> {{ $config['prev_label'] }}
-                                </span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-lime-100 text-lime-800 border border-lime-300">OK</span>
                             @endif
                         </td>
-
-                        <!-- Status Divisi Ini -->
                         <td class="py-2.5 px-3 text-center" @click.stop>
                             @if($isPast)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
-                                    <i class="ph-bold ph-seal-check text-emerald-600 text-sm"></i> {{ $config['next_label'] }}
-                                </span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">SELESAI</span>
                             @elseif($isCurrent)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
-                                    <i class="ph-bold ph-clock text-amber-600"></i> Belum selesai
-                                </span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 animate-pulse">PROSES</span>
                             @else
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-400 border border-slate-200">
-                                    <i class="ph-bold ph-lock text-xs"></i> Dalam proses
-                                </span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-400">MENUNGGU</span>
                             @endif
                         </td>
-
-                        <!-- Kolom Aksi Checkbox (Dicegah propagasi kliknya) -->
                         <td class="py-2.5 px-3 text-center" @click.stop @if($loop->first) id="tour-first-checkbox" @endif>
-                            <div class="flex items-center justify-center">
-                                <input
-                                    type="checkbox"
-                                    class="qc-checkbox"
-                                    {{ $isPast ? 'checked' : '' }}
-                                    {{ !$canAction ? 'disabled' : '' }}
-                                    @click.prevent="
-                                        if (!{{ $canAction ? 'true' : 'false' }}) return;
-                                        handleToggle({{ $order->id }}, '{{ $order->no_so }}', '{{ addslashes($order->customer->name ?? $order->customer_name) }}', {{ $isPast ? 'true' : 'false' }})
-                                    "
-                                    title="{{ !$canAction ? ($isWaiting ? 'Menunggu tahap sebelumnya selesai' : 'Sudah diproses divisi berikutnya') : ($isPast ? 'Klik untuk membatalkan (rollback)' : 'Klik untuk approve status selesai') }}"
-                                />
-                            </div>
+                            <input
+                                type="checkbox"
+                                class="qc-checkbox scale-75"
+                                {{ $isPast ? 'checked' : '' }}
+                                {{ !$canAction ? 'disabled' : '' }}
+                                @click.prevent="if (!{{ $canAction ? 'true' : 'false' }}) return; handleToggle({{ $order->id }}, '{{ $order->no_so }}', '{{ addslashes($custName) }}', {{ $isPast ? 'true' : 'false' }})"
+                            />
                         </td>
-
-                        <!-- Modal Edit (Dicegah propagasi kliknya) -->
                         <td class="py-2.5 px-2 text-center" @click.stop @if($loop->first) id="tour-first-edit" @endif>
                             <button
                                 type="button"
                                 @click="openEditModal({{ $order->id }}, '{{ $order->no_so }}', {{ $order->qty }}, {{ $progress?->completed_qty ?? 0 }}, '{{ addslashes($progress?->issue_note ?? '') }}')"
-                                class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-600 hover:text-black transition-colors cursor-pointer mx-auto"
-                                title="Edit progres qty & catatan kendala"
+                                class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-600 mx-auto"
                             >
                                 <i class="ph-bold ph-pencil-simple text-sm"></i>
                             </button>
@@ -331,30 +283,128 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="py-8 text-center text-slate-400 font-bold">
-                            Tidak ada antrean pesanan untuk {{ $config['name'] }} saat ini.
-                        </td>
+                        <td colspan="8" class="py-8 text-center text-slate-400 font-bold">Tidak ada antrean pesanan.</td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
+
+            <!-- ================= TAMPILAN HP (MOBILE CARD LIST) ================= -->
+            <div class="space-y-3 md:hidden">
+                @forelse($orders as $idx => $order)
+                @php
+                    $orderStageIdx = array_search($order->current_status, $stageFlow);
+                    if ($orderStageIdx === false) $orderStageIdx = 0;
+
+                    $isPast = $orderStageIdx > $currentDivIndex;
+                    $isCurrent = $orderStageIdx === $currentDivIndex;
+                    $isWaiting = $orderStageIdx < $currentDivIndex;
+
+                    $canCheck = $isCurrent;
+                    $canUncheck = ($orderStageIdx === $currentDivIndex + 1);
+                    $canAction = $canCheck || $canUncheck;
+
+                    $progress = $order->stationProgress->firstWhere('division', $activeDivision);
+                    $isUrgent = \Carbon\Carbon::parse($order->target_deadline)->isPast() || \Carbon\Carbon::parse($order->target_deadline)->isToday();
+
+                    $custName = $order->customer->name ?? $order->customer_name;
+                    $mappedOrder = [
+                        'id' => $order->id,
+                        'customer' => $custName,
+                        'so' => $order->no_so,
+                        'type' => $order->order_type ?? 'Atasan Fullprint',
+                        'fabric' => $order->fabric_type ?? '-',
+                        'total_qty' => $order->qty,
+                        'order_in' => \Carbon\Carbon::parse($order->created_at)->translatedFormat('d M Y'),
+                        'order_out' => \Carbon\Carbon::parse($order->target_deadline)->translatedFormat('d M Y'),
+                        'deadline_note' => \Carbon\Carbon::parse($order->target_deadline)->diffForHumans(),
+                        'is_urgent' => $isUrgent,
+                        'current_div' => strtoupper($order->current_status),
+                        'current_div_color' => '#00bf63',
+                        'current_job' => $order->order_title ?? '-',
+                        'progress_pcs' => ($progress?->completed_qty ?? 0) . ' / ' . $order->qty . ' ' . $order->satuan,
+                        'progress_percent' => $order->qty > 0 ? min(100, (($progress?->completed_qty ?? 0) / $order->qty) * 100) : 0,
+                        'spk_image' => $order->spk_photo_path ? asset('storage/' . $order->spk_photo_path) : null,
+                        'description' => $order->notes ?? 'Tidak ada catatan khusus.',
+                    ];
+                @endphp
+                <div 
+                    @click="openDetail({{ json_encode($mappedOrder) }})"
+                    class="p-3.5 rounded-2xl border border-slate-200 shadow-2xs space-y-2.5 transition-all {{ $isPast ? 'bg-emerald-50/40 border-emerald-200' : ($isWaiting ? 'bg-slate-50 opacity-60' : 'bg-white') }}"
+                >
+                    <!-- Header Card: No SO & Status Badge -->
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <div>
+                            <span class="text-[10px] font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">{{ $order->no_so }}</span>
+                            <h3 class="text-sm font-black text-black mt-1">{{ $custName }}</h3>
+                        </div>
+                        <div>
+                            @if($isPast)
+                                <span class="px-2 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 uppercase">Selesai</span>
+                            @elseif($isCurrent)
+                                <span class="px-2 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 uppercase animate-pulse">Proses</span>
+                            @else
+                                <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 uppercase">Menunggu</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Info Detail Ringkas -->
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-bold">Bahan & Qty</span>
+                            <strong class="text-slate-800">{{ $order->fabric_type ?? '-' }} ({{ $order->qty }} {{ strtoupper($order->satuan) }})</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-bold">Target Out</span>
+                            <strong class="{{ $isUrgent ? 'text-rose-600' : 'text-slate-800' }}">{{ \Carbon\Carbon::parse($order->target_deadline)->translatedFormat('d M Y') }}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Footer Card: Aksi Ceklis & Tombol Edit -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100" @click.stop>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-bold text-slate-500">Ceklis Selesai:</span>
+                            <input
+                                type="checkbox"
+                                class="qc-checkbox scale-90"
+                                {{ $isPast ? 'checked' : '' }}
+                                {{ !$canAction ? 'disabled' : '' }}
+                                @click.prevent="if (!{{ $canAction ? 'true' : 'false' }}) return; handleToggle({{ $order->id }}, '{{ $order->no_so }}', '{{ addslashes($custName) }}', {{ $isPast ? 'true' : 'false' }})"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            @click="openEditModal({{ $order->id }}, '{{ $order->no_so }}', {{ $order->qty }}, {{ $progress?->completed_qty ?? 0 }}, '{{ addslashes($progress?->issue_note ?? '') }}')"
+                            class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-1.5"
+                        >
+                            <i class="ph-bold ph-pencil-simple text-sm"></i> Catatan
+                        </button>
+                    </div>
+                </div>
+                @empty
+                <div class="py-12 text-center text-slate-400 font-bold text-xs">
+                    Tidak ada antrean pesanan untuk {{ $config['name'] }} saat ini.
+                </div>
+                @endforelse
+            </div>
+
         </div>
     </div>
 
     <!-- RUNNING TEXT FOOTER -->
-    <footer id="tour-div-sop" class="bg-black text-white h-10 px-5 flex items-center overflow-hidden border-t border-slate-800 shrink-0 select-none rounded-xl mt-2">
+    <footer id="tour-div-sop" class="bg-black text-white h-9 px-4 flex items-center overflow-hidden border-t border-slate-800 shrink-0 select-none rounded-xl mt-2">
         <div class="flex items-center w-full">
-            <div class="flex items-center gap-1.5 {{ $config['badge_bg'] }} text-white font-black text-xs uppercase tracking-wider px-2.5 py-0.5 rounded-md shrink-0 mr-3 shadow-xs">
-                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            <div class="flex items-center gap-1.5 {{ $config['badge_bg'] }} text-white font-black text-[10px] uppercase tracking-wider px-2 py-0.5 rounded shrink-0 mr-2 shadow-xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
                 <span>{{ $config['sop_title'] }}</span>
             </div>
 
-            <div class="overflow-hidden relative w-full text-xs font-bold tracking-wide text-white">
+            <div class="overflow-hidden relative w-full text-[11px] font-bold tracking-wide text-white">
                 <div class="animate-marquee-slow inline-block whitespace-nowrap">
                     <span>{{ $config['sop_text'] }}</span>
-                    <span class="mx-7 text-slate-500 font-black">&bull;</span>
-                    <span class="text-amber-400 font-black">Tahap divisi bersifat sekuensial (tidak dapat melompati divisi sebelumnya).</span>
-                    <span class="mx-7 text-slate-500 font-black">&bull;</span>
+                    <span class="mx-5 text-slate-500 font-black">&bull;</span>
+                    <span class="text-amber-400 font-black">Tahap divisi bersifat sekuensial.</span>
                 </div>
             </div>
         </div>
@@ -419,7 +469,7 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP DETAIL SPK SEPERTI MONITORING -->
+    <!-- MODAL POPUP DETAIL SPK -->
     <div
         x-show="selectedOrder"
         x-cloak
@@ -430,7 +480,6 @@
             @click.outside="selectedOrder = null"
             class="bg-white rounded-3xl border border-slate-300 shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden"
         >
-            <!-- Modal Header -->
             <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
@@ -457,10 +506,7 @@
                 </button>
             </div>
 
-            <!-- Modal Content -->
             <div class="p-6 overflow-y-auto space-y-4 text-slate-800 text-xs">
-                
-                <!-- Box Progress Realtime -->
                 <div class="bg-indigo-50/60 border border-indigo-200 rounded-2xl p-4">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
@@ -481,10 +527,7 @@
                     </div>
                 </div>
 
-                <!-- 2 Kolom Spesifikasi & Foto Form SPK -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    <!-- Rincian Spesifikasi -->
                     <div class="space-y-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                         <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                             <i class="ph-bold ph-info"></i> Rincian Spesifikasi Order
@@ -513,7 +556,6 @@
                         </div>
                     </div>
 
-                    <!-- Lembar Form SPK Fisik -->
                     <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between">
                         <div>
                             <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
@@ -546,20 +588,16 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
 
-                <!-- Catatan Spesifikasi Khusus -->
                 <div class="bg-amber-50/70 border border-amber-200 p-4 rounded-2xl">
                     <h4 class="text-xs font-black uppercase tracking-wider text-amber-800 mb-1 flex items-center gap-1.5">
                         <i class="ph-bold ph-warning-circle"></i> Catatan Spesifikasi Khusus:
                     </h4>
                     <p class="text-xs font-bold text-slate-800 leading-relaxed" x-text="selectedOrder?.description"></p>
                 </div>
-
             </div>
 
-            <!-- Modal Footer -->
             <div class="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
                     <i class="ph-bold ph-info text-indigo-600"></i>
@@ -575,7 +613,6 @@
             </div>
         </div>
 
-        <!-- Zoom Modal Foto SPK Layar Penuh -->
         <div
             x-show="zoomImage"
             x-cloak
@@ -597,7 +634,6 @@
                 </button>
             </div>
         </div>
-
     </div>
 
 </div>
@@ -607,7 +643,7 @@
     type="button" 
     onclick="jalankanTourUpdateStatus()" 
     title="Panduan Halaman Update Status"
-    class="btn-pulse-orange fixed bottom-14 right-6 z-[9999] w-11 h-11 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-lg shadow-lg flex items-center justify-center cursor-pointer transition-colors"
+    class="btn-pulse-orange fixed bottom-20 right-4 z-[9999] w-10 h-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-base shadow-lg flex items-center justify-center cursor-pointer transition-colors"
 >
     ?
 </button>
@@ -664,37 +700,10 @@ function jalankanTourUpdateStatus() {
             } 
         },
         { 
-            element: '#tour-col-prev',
-            popover: { 
-                title: 'Status Tahap Sebelumnya', 
-                description: 'Pastikan kolom ini sudah berwarna hijau (OK). Jika masih tertulis "Belum Selesai", maka pesanan masih dikerjakan oleh divisi sebelumnya.', 
-                side: "bottom", 
-                align: 'center' 
-            } 
-        },
-        { 
-            element: document.getElementById('tour-first-checkbox') ? '#tour-first-checkbox' : '#tour-col-check',
-            popover: { 
-                title: 'Centang Selesai (Aksi Cek)', 
-                description: 'Klik kotak centang ini saat pekerjaan di divisi Anda telah selesai 100% agar SO otomatis diteruskan ke divisi berikutnya.', 
-                side: "left", 
-                align: 'center' 
-            } 
-        },
-        { 
-            element: document.getElementById('tour-first-edit') ? '#tour-first-edit' : '#tour-col-edit',
-            popover: { 
-                title: 'Catat Cicilan Qty & Kendala', 
-                description: 'Klik ikon pensil ini jika Anda ingin mencatat progres jumlah pcs yang baru selesai sebagian atau melaporkan kendala produksi.', 
-                side: "left", 
-                align: 'center' 
-            } 
-        },
-        { 
             element: '#tour-div-sop',
             popover: { 
                 title: 'Pengingat SOP Divisi', 
-                description: 'Baris berjalan di bagian bawah ini berisi pengingat standar operasional prosedur (SOP) yang wajib dipatuhi tim sebelum menekan centang selesai.', 
+                description: 'Baris berjalan di bagian bawah ini berisi pengingat standar operasional prosedur (SOP) yang wajib dipatuhi tim.', 
                 side: "top", 
                 align: 'start' 
             } 
@@ -735,7 +744,6 @@ function divisionManager() {
         selectedOrder: null,
         zoomImage: false,
 
-        // Variabel formEdit untuk modal edit progres
         formEdit: {
             division: '{{ $activeDivision }}',
             completed_qty: 0,
