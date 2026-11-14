@@ -1,9 +1,9 @@
 @extends('layouts.app', ['title' => 'ONION CREATIVE - ' . $config['name']])
 
 @section('content')
-<!-- Driver.js Assets (CSS & JS) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
-<script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+<!-- Driver.js Assets (CSS & JS Lokal) -->
+<link rel="stylesheet" href="{{ asset('css/driver.css') }}">
+<script src="{{ asset('js/driver.js.iife.js') }}"></script>
 
 <style>
     .qc-checkbox {
@@ -36,7 +36,6 @@
         border-width: 0 3.5px 3.5px 0;
         transform: rotate(45deg) translate(-1px, -1px);
     }
-    /* Style saat checkbox terkunci */
     .qc-checkbox:disabled {
         background-color: #e2e8f0;
         border-color: #cbd5e1;
@@ -166,7 +165,7 @@
             <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <p class="text-xs font-bold text-slate-600">
-                    Beri centang saat pesanan <strong class="text-black">selesai pada {{ $config['name'] }}</strong> untuk meneruskan ke divisi berikutnya.
+                    Beri centang saat pesanan <strong class="text-black">selesai pada {{ $config['name'] }}</strong> untuk meneruskan ke divisi berikutnya. <span class="text-indigo-600 font-semibold">(Klik baris order untuk melihat detail lengkap)</span>
                 </p>
             </div>
             <div class="text-[11px] font-semibold text-slate-400">Rantai Produksi Berurutan (Strict Flow)</div>
@@ -193,20 +192,42 @@
                         $orderStageIdx = array_search($order->current_status, $stageFlow);
                         if ($orderStageIdx === false) $orderStageIdx = 0;
 
-                        // Status logika per divisi
-                        $isPast = $orderStageIdx > $currentDivIndex;       // Sudah selesai di divisi ini
-                        $isCurrent = $orderStageIdx === $currentDivIndex;  // Sedang giliran divisi ini
-                        $isWaiting = $orderStageIdx < $currentDivIndex;    // Masih menunggu tahap sebelumnya
+                        $isPast = $orderStageIdx > $currentDivIndex;
+                        $isCurrent = $orderStageIdx === $currentDivIndex;
+                        $isWaiting = $orderStageIdx < $currentDivIndex;
 
-                        // Syarat bisa dicentang / diuncheck
                         $canCheck = $isCurrent;
-                        $canUncheck = ($orderStageIdx === $currentDivIndex + 1); // hanya bisa batal jika divisi berikutnya belum selesai
+                        $canUncheck = ($orderStageIdx === $currentDivIndex + 1);
                         $canAction = $canCheck || $canUncheck;
 
                         $progress = $order->stationProgress->firstWhere('division', $activeDivision);
                         $isUrgent = \Carbon\Carbon::parse($order->target_deadline)->isPast() || \Carbon\Carbon::parse($order->target_deadline)->isToday();
+
+                        $custName = $order->customer->name ?? $order->customer_name;
+                        $mappedOrder = [
+                            'id' => $order->id,
+                            'customer' => $custName,
+                            'so' => $order->no_so,
+                            'type' => $order->order_type ?? 'Atasan Fullprint',
+                            'fabric' => $order->fabric_type ?? '-',
+                            'total_qty' => $order->qty,
+                            'order_in' => \Carbon\Carbon::parse($order->created_at)->translatedFormat('d M Y'),
+                            'order_out' => \Carbon\Carbon::parse($order->target_deadline)->translatedFormat('d M Y'),
+                            'deadline_note' => \Carbon\Carbon::parse($order->target_deadline)->diffForHumans(),
+                            'is_urgent' => $isUrgent,
+                            'current_div' => strtoupper($order->current_status),
+                            'current_div_color' => '#00bf63',
+                            'current_job' => $order->order_title ?? '-',
+                            'progress_pcs' => ($progress?->completed_qty ?? 0) . ' / ' . $order->qty . ' ' . $order->satuan,
+                            'progress_percent' => $order->qty > 0 ? min(100, (($progress?->completed_qty ?? 0) / $order->qty) * 100) : 0,
+                            'spk_image' => $order->spk_photo_path ? asset('storage/' . $order->spk_photo_path) : null,
+                            'description' => $order->notes ?? 'Tidak ada catatan khusus.',
+                        ];
                     @endphp
-                    <tr class="transition-colors {{ $isPast ? 'bg-emerald-50/30' : ($isWaiting ? 'bg-slate-50/50 opacity-60' : 'hover:bg-slate-50/80') }}">
+                    <tr 
+                        @click="openDetail({{ json_encode($mappedOrder) }})"
+                        class="transition-colors cursor-pointer group {{ $isPast ? 'bg-emerald-50/30' : ($isWaiting ? 'bg-slate-50/50 opacity-60' : 'hover:bg-indigo-50/40') }}"
+                    >
                         <!-- No -->
                         <td class="py-2.5 px-3 text-center font-black text-black text-sm">
                             {{ $idx + 1 }}
@@ -215,7 +236,10 @@
                         <!-- No. SO & Customer -->
                         <td class="py-2.5 px-3">
                             <div class="truncate">
-                                <p class="text-sm font-black text-black leading-tight">{{ $order->customer->name ?? $order->customer_name }}</p>
+                                <p class="text-sm font-black text-black leading-tight flex items-center gap-1.5">
+                                    <span>{{ $custName }}</span>
+                                    <i class="ph-bold ph-arrow-square-out text-slate-400 group-hover:text-indigo-600 text-xs transition-colors"></i>
+                                </p>
                                 <div class="flex items-center gap-2 mt-0.5">
                                     <span class="text-[11px] font-mono font-bold text-slate-600">{{ $order->no_so }}</span>
                                     <span class="text-[11px] text-slate-500 font-semibold">&bull; {{ $order->order_type ?? 'Atasan Fullprint' }}</span>
@@ -247,7 +271,7 @@
                         </td>
 
                         <!-- Tahap Sebelumnya -->
-                        <td class="py-2.5 px-3 text-center">
+                        <td class="py-2.5 px-3 text-center" @click.stop>
                             @if($isWaiting)
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                     <i class="ph-bold ph-hourglass text-xs"></i> Belum Selesai
@@ -260,7 +284,7 @@
                         </td>
 
                         <!-- Status Divisi Ini -->
-                        <td class="py-2.5 px-3 text-center">
+                        <td class="py-2.5 px-3 text-center" @click.stop>
                             @if($isPast)
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
                                     <i class="ph-bold ph-seal-check text-emerald-600 text-sm"></i> {{ $config['next_label'] }}
@@ -276,8 +300,8 @@
                             @endif
                         </td>
 
-                        <!-- Kolom Aksi Checkbox (Dikunci Jika Belum Gilirannya) -->
-                        <td class="py-2.5 px-3 text-center" @if($loop->first) id="tour-first-checkbox" @endif>
+                        <!-- Kolom Aksi Checkbox (Dicegah propagasi kliknya) -->
+                        <td class="py-2.5 px-3 text-center" @click.stop @if($loop->first) id="tour-first-checkbox" @endif>
                             <div class="flex items-center justify-center">
                                 <input
                                     type="checkbox"
@@ -293,8 +317,8 @@
                             </div>
                         </td>
 
-                        <!-- Modal Edit -->
-                        <td class="py-2.5 px-2 text-center" @if($loop->first) id="tour-first-edit" @endif>
+                        <!-- Modal Edit (Dicegah propagasi kliknya) -->
+                        <td class="py-2.5 px-2 text-center" @click.stop @if($loop->first) id="tour-first-edit" @endif>
                             <button
                                 type="button"
                                 @click="openEditModal({{ $order->id }}, '{{ $order->no_so }}', {{ $order->qty }}, {{ $progress?->completed_qty ?? 0 }}, '{{ addslashes($progress?->issue_note ?? '') }}')"
@@ -395,6 +419,187 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP DETAIL SPK SEPERTI MONITORING -->
+    <div
+        x-show="selectedOrder"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+        @keydown.escape.window="selectedOrder = null"
+    >
+        <div
+            @click.outside="selectedOrder = null"
+            class="bg-white rounded-3xl border border-slate-300 shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden"
+        >
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
+                        <i class="ph-bold ph-receipt text-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-lg font-black tracking-tight" x-text="selectedOrder?.customer"></h3>
+                            <span
+                                class="text-[10px] font-black px-2 py-0.5 rounded-full uppercase"
+                                style="background-color:#00bf63; color:#fff;"
+                                x-text="selectedOrder?.current_div"
+                            ></span>
+                        </div>
+                        <p class="text-xs text-slate-400 font-mono" x-text="selectedOrder?.so + ' • Masuk: ' + selectedOrder?.order_in"></p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    @click="selectedOrder = null"
+                    class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors text-lg cursor-pointer"
+                >
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6 overflow-y-auto space-y-4 text-slate-800 text-xs">
+                
+                <!-- Box Progress Realtime -->
+                <div class="bg-indigo-50/60 border border-indigo-200 rounded-2xl p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full animate-ping bg-emerald-500"></span>
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-700">
+                                Posisi Divisi Saat Ini: <strong class="text-indigo-950" x-text="selectedOrder?.current_div"></strong>
+                            </span>
+                        </div>
+                        <span class="text-xs font-black text-indigo-700 font-mono" x-text="'Progres Fisik: ' + selectedOrder?.progress_pcs"></span>
+                    </div>
+                    <p class="text-xs font-bold text-slate-700 mb-2.5" x-text="selectedOrder?.current_job"></p>
+                    
+                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div
+                            class="h-full rounded-full transition-all duration-500 bg-emerald-500"
+                            :style="'width:' + selectedOrder?.progress_percent + '%'"
+                        ></div>
+                    </div>
+                </div>
+
+                <!-- 2 Kolom Spesifikasi & Foto Form SPK -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Rincian Spesifikasi -->
+                    <div class="space-y-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                            <i class="ph-bold ph-info"></i> Rincian Spesifikasi Order
+                        </h4>
+                        <div class="space-y-1.5 text-xs">
+                            <div class="flex justify-between border-b border-slate-200 pb-1">
+                                <span class="text-slate-500">Tipe Pesanan:</span>
+                                <span class="font-black text-black" x-text="selectedOrder?.type"></span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-200 pb-1">
+                                <span class="text-slate-500">Bahan / Fabric:</span>
+                                <span class="font-black text-black" x-text="selectedOrder?.fabric"></span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-200 pb-1">
+                                <span class="text-slate-500">Tanggal Masuk (In):</span>
+                                <span class="font-bold text-slate-700" x-text="selectedOrder?.order_in"></span>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-200 pb-1">
+                                <span class="text-slate-500">Target Selesai (Out):</span>
+                                <span class="font-black text-rose-600" x-text="selectedOrder?.order_out"></span>
+                            </div>
+                            <div class="flex justify-between pt-1">
+                                <span class="text-slate-600 font-bold">Total Jumlah:</span>
+                                <span class="font-black text-indigo-700 text-sm" x-text="selectedOrder?.total_qty + ' PCS'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lembar Form SPK Fisik -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5"><i class="ph-bold ph-image"></i> Lembar Form SPK Fisik</span>
+                                <span class="text-[10px] text-indigo-600 font-bold lowercase">klik foto untuk perbesar</span>
+                            </h4>
+                            <div
+                                @click="if (selectedOrder?.spk_image) zoomImage = true"
+                                class="w-full h-44 bg-slate-200 rounded-xl overflow-hidden border border-slate-300 cursor-zoom-in relative group flex items-center justify-center"
+                            >
+                                <template x-if="selectedOrder?.spk_image">
+                                    <img
+                                        :src="selectedOrder?.spk_image"
+                                        alt="Foto SPK"
+                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                </template>
+                                <template x-if="!selectedOrder?.spk_image">
+                                    <div class="text-center p-4 text-slate-400">
+                                        <i class="ph-bold ph-image-broken text-3xl mb-1"></i>
+                                        <p class="text-xs font-bold">Tidak ada lampiran foto fisik</p>
+                                    </div>
+                                </template>
+                                <div
+                                    x-show="selectedOrder?.spk_image"
+                                    class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-black"
+                                >
+                                    <i class="ph-bold ph-magnifying-glass-plus text-lg mr-1"></i> Perbesar Foto
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Catatan Spesifikasi Khusus -->
+                <div class="bg-amber-50/70 border border-amber-200 p-4 rounded-2xl">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-amber-800 mb-1 flex items-center gap-1.5">
+                        <i class="ph-bold ph-warning-circle"></i> Catatan Spesifikasi Khusus:
+                    </h4>
+                    <p class="text-xs font-bold text-slate-800 leading-relaxed" x-text="selectedOrder?.description"></p>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
+                    <i class="ph-bold ph-info text-indigo-600"></i>
+                    <span>Data tersinkronisasi otomatis dengan checklist divisi operator.</span>
+                </div>
+                <button
+                    type="button"
+                    @click="selectedOrder = null"
+                    class="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-black rounded-xl transition-colors cursor-pointer"
+                >
+                    Tutup Dialog
+                </button>
+            </div>
+        </div>
+
+        <!-- Zoom Modal Foto SPK Layar Penuh -->
+        <div
+            x-show="zoomImage"
+            x-cloak
+            class="fixed inset-0 z-60 bg-black/85 flex items-center justify-center p-4 cursor-zoom-out"
+            @click="zoomImage = false"
+        >
+            <div class="max-w-4xl max-h-[92vh] bg-white p-2 rounded-2xl overflow-hidden shadow-2xl relative">
+                <img
+                    :src="selectedOrder?.spk_image"
+                    alt="Foto SPK Layar Penuh"
+                    class="w-full h-full max-h-[88vh] object-contain"
+                />
+                <button
+                    type="button"
+                    @click.stop="zoomImage = false"
+                    class="absolute top-4 right-4 bg-black/70 hover:bg-black text-white w-9 h-9 rounded-full flex items-center justify-center font-black"
+                >
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
 </div>
 
 <!-- TOMBOL BANTUAN "?" MELAYANG ORANYE BERDENYUT DI POJOK KANAN BAWAH -->
@@ -427,7 +632,6 @@ function jalankanTourUpdateStatus() {
         }
     ];
 
-    // Jika role admin/superadmin, tampilkan step dropdown pindah divisi
     if (document.getElementById('tour-div-switcher')) {
         steps.push({
             element: '#tour-div-switcher',
@@ -454,7 +658,7 @@ function jalankanTourUpdateStatus() {
             element: '#tour-strict-info',
             popover: { 
                 title: 'Aturan Rantai Produksi (Strict Flow)', 
-                description: 'Setiap pesanan wajib melewati divisi secara berurutan. Anda hanya bisa mencentang pesanan jika tahap divisi sebelumnya sudah berstatus OK.', 
+                description: 'Setiap pesanan wajib melewati divisi secara berurutan. Klik pada baris order manapun untuk melihat detail spesifikasi dan foto lembar fisik.', 
                 side: "bottom", 
                 align: 'start' 
             } 
@@ -528,11 +732,18 @@ function divisionManager() {
         activeOrderNo: '',
         activeTotalQty: 0,
         isSaving: false,
+        selectedOrder: null,
+        zoomImage: false,
 
+        // Variabel formEdit untuk modal edit progres
         formEdit: {
             division: '{{ $activeDivision }}',
             completed_qty: 0,
             issue_note: '',
+        },
+
+        openDetail(order) {
+            this.selectedOrder = order;
         },
 
         handleToggle(orderId, noSo, customerName, isCurrentlyCleared) {

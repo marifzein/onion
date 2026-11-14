@@ -1,6 +1,10 @@
 @extends('layouts.app', ['title' => 'ONION CREATIVE - ' . $config['name']])
 
 @section('content')
+<!-- Driver.js Assets (CSS & JS) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
+<script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+
 <style>
     .qc-checkbox {
         appearance: none;
@@ -48,6 +52,62 @@
         white-space: nowrap;
         animation: slowMarquee 45s linear infinite;
     }
+
+    /* Animasi Berdenyut Tombol Panduan Oranye */
+    @keyframes pulseOrange {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.65); }
+        70% { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(249, 115, 22, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+    }
+    .btn-pulse-orange {
+        animation: pulseOrange 2s infinite;
+    }
+    .btn-pulse-orange:hover {
+        animation: none;
+        transform: scale(1.1);
+    }
+
+    /* Styling Popover Driver.js ala TataKas */
+    .driver-popover .driver-popover-next-btn,
+    .driver-popover .driver-popover-done-btn {
+        background-color: #10b981 !important;
+        color: #ffffff !important;
+        border: none !important;
+        text-shadow: none !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        padding: 6px 14px !important;
+        border-radius: 8px !important;
+    }
+    .driver-popover .driver-popover-next-btn:hover,
+    .driver-popover .driver-popover-done-btn:hover {
+        background-color: #059669 !important;
+    }
+    .driver-popover .driver-popover-prev-btn {
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        border: 1px solid #cbd5e1 !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        padding: 6px 14px !important;
+        border-radius: 8px !important;
+    }
+    .driver-popover {
+        border-radius: 16px !important;
+        padding: 16px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15) !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+    .driver-popover-title {
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        font-size: 15px !important;
+    }
+    .driver-popover-description {
+        color: #64748b !important;
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+    }
 </style>
 
 @php
@@ -59,7 +119,7 @@
     
     <!-- SUB-BAR / HEADER DIVISI -->
     <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-2 shrink-0">
-        <div class="flex items-center gap-3">
+        <div id="tour-div-header" class="flex items-center gap-3">
             <span class="text-xs px-3 py-1 rounded-full text-white font-black uppercase tracking-wider {{ $config['badge_bg'] }} shadow-xs flex items-center gap-1.5">
                 <i class="ph-bold ph-shield-check"></i> {{ $config['name'] }}
             </span>
@@ -69,6 +129,7 @@
 
             @if(in_array($user->role, ['admin', 'superadmin']))
                 <select 
+                    id="tour-div-switcher"
                     onchange="window.location.href='/update-status?div=' + this.value"
                     class="ml-2 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-black text-black outline-none focus:border-black cursor-pointer shadow-xs"
                 >
@@ -90,7 +151,7 @@
             })->count();
             $pendingCount = $totalCount - $doneCount;
         @endphp
-        <div class="flex items-center gap-2 bg-white border border-slate-300 px-3 py-1 rounded-xl text-xs font-bold text-slate-700 shadow-xs">
+        <div id="tour-div-stats" class="flex items-center gap-2 bg-white border border-slate-300 px-3 py-1 rounded-xl text-xs font-bold text-slate-700 shadow-xs">
             <span>Antrean: <strong class="text-black">{{ $totalCount }}</strong></span>
             <span class="text-slate-300">|</span>
             <span class="text-emerald-700">Selesai: <strong>{{ $doneCount }}</strong></span>
@@ -100,8 +161,8 @@
     </div>
 
     <!-- TABEL ORDERAN -->
-    <div class="bg-white rounded-2xl border border-slate-300 shadow-xs flex-1 flex flex-col overflow-hidden">
-        <div class="px-5 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
+    <div id="tour-div-table" class="bg-white rounded-2xl border border-slate-300 shadow-xs flex-1 flex flex-col overflow-hidden">
+        <div id="tour-strict-info" class="px-5 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <p class="text-xs font-bold text-slate-600">
@@ -119,10 +180,10 @@
                         <th class="py-2.5 px-3 w-[25%]">No. SO & Customer</th>
                         <th class="py-2.5 px-3 w-[20%]">Fabric, Size & Qty</th>
                         <th class="py-2.5 px-3 w-[14%]">Order Out</th>
-                        <th class="py-2.5 px-3 w-[13%] text-center">Tahap Sebelumnya</th>
-                        <th class="py-2.5 px-3 w-[12%] text-center">Status</th>
-                        <th class="py-2.5 px-3 w-[7%] text-center">Aksi Cek</th>
-                        <th class="py-2.5 px-2 w-[5%] text-center">Edit</th>
+                        <th id="tour-col-prev" class="py-2.5 px-3 w-[13%] text-center">Tahap Sebelumnya</th>
+                        <th id="tour-col-status" class="py-2.5 px-3 w-[12%] text-center">Status</th>
+                        <th id="tour-col-check" class="py-2.5 px-3 w-[7%] text-center">Aksi Cek</th>
+                        <th id="tour-col-edit" class="py-2.5 px-2 w-[5%] text-center">Edit</th>
                     </tr>
                 </thead>
 
@@ -216,7 +277,7 @@
                         </td>
 
                         <!-- Kolom Aksi Checkbox (Dikunci Jika Belum Gilirannya) -->
-                        <td class="py-2.5 px-3 text-center">
+                        <td class="py-2.5 px-3 text-center" @if($loop->first) id="tour-first-checkbox" @endif>
                             <div class="flex items-center justify-center">
                                 <input
                                     type="checkbox"
@@ -233,7 +294,7 @@
                         </td>
 
                         <!-- Modal Edit -->
-                        <td class="py-2.5 px-2 text-center">
+                        <td class="py-2.5 px-2 text-center" @if($loop->first) id="tour-first-edit" @endif>
                             <button
                                 type="button"
                                 @click="openEditModal({{ $order->id }}, '{{ $order->no_so }}', {{ $order->qty }}, {{ $progress?->completed_qty ?? 0 }}, '{{ addslashes($progress?->issue_note ?? '') }}')"
@@ -257,7 +318,7 @@
     </div>
 
     <!-- RUNNING TEXT FOOTER -->
-    <footer class="bg-black text-white h-10 px-5 flex items-center overflow-hidden border-t border-slate-800 shrink-0 select-none rounded-xl mt-2">
+    <footer id="tour-div-sop" class="bg-black text-white h-10 px-5 flex items-center overflow-hidden border-t border-slate-800 shrink-0 select-none rounded-xl mt-2">
         <div class="flex items-center w-full">
             <div class="flex items-center gap-1.5 {{ $config['badge_bg'] }} text-white font-black text-xs uppercase tracking-wider px-2.5 py-0.5 rounded-md shrink-0 mr-3 shadow-xs">
                 <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
@@ -336,7 +397,129 @@
 
 </div>
 
+<!-- TOMBOL BANTUAN "?" MELAYANG ORANYE BERDENYUT DI POJOK KANAN BAWAH -->
+<button 
+    type="button" 
+    onclick="jalankanTourUpdateStatus()" 
+    title="Panduan Halaman Update Status"
+    class="btn-pulse-orange fixed bottom-14 right-6 z-[9999] w-11 h-11 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-lg shadow-lg flex items-center justify-center cursor-pointer transition-colors"
+>
+    ?
+</button>
+
 <script>
+function jalankanTourUpdateStatus() {
+    const driverFactory = window.driver?.js?.driver || window.driver;
+    if (!driverFactory) {
+        alert('Panduan sedang memuat, silakan klik sekali lagi.');
+        return;
+    }
+
+    const steps = [
+        { 
+            element: '#tour-div-header',
+            popover: { 
+                title: 'Identitas Divisi Aktif', 
+                description: 'Menampilkan nama divisi kerja yang sedang Anda buka beserta deskripsi tugas utamanya.', 
+                side: "bottom", 
+                align: 'start' 
+            } 
+        }
+    ];
+
+    // Jika role admin/superadmin, tampilkan step dropdown pindah divisi
+    if (document.getElementById('tour-div-switcher')) {
+        steps.push({
+            element: '#tour-div-switcher',
+            popover: {
+                title: 'Pindah Tampilan Divisi',
+                description: 'Khusus Admin/Superadmin: Anda dapat berpindah untuk memantau atau meng-update antrean milik divisi lain melalui pilihan ini.',
+                side: "bottom",
+                align: 'start'
+            }
+        });
+    }
+
+    steps.push(
+        { 
+            element: '#tour-div-stats',
+            popover: { 
+                title: 'Ringkasan Beban Kerja', 
+                description: 'Pantau cepat jumlah total SO di antrean, berapa pesanan yang sudah selesai pada divisi ini, dan berapa yang masih menunggu dikerjakan.', 
+                side: "bottom", 
+                align: 'end' 
+            } 
+        },
+        { 
+            element: '#tour-strict-info',
+            popover: { 
+                title: 'Aturan Rantai Produksi (Strict Flow)', 
+                description: 'Setiap pesanan wajib melewati divisi secara berurutan. Anda hanya bisa mencentang pesanan jika tahap divisi sebelumnya sudah berstatus OK.', 
+                side: "bottom", 
+                align: 'start' 
+            } 
+        },
+        { 
+            element: '#tour-col-prev',
+            popover: { 
+                title: 'Status Tahap Sebelumnya', 
+                description: 'Pastikan kolom ini sudah berwarna hijau (OK). Jika masih tertulis "Belum Selesai", maka pesanan masih dikerjakan oleh divisi sebelumnya.', 
+                side: "bottom", 
+                align: 'center' 
+            } 
+        },
+        { 
+            element: document.getElementById('tour-first-checkbox') ? '#tour-first-checkbox' : '#tour-col-check',
+            popover: { 
+                title: 'Centang Selesai (Aksi Cek)', 
+                description: 'Klik kotak centang ini saat pekerjaan di divisi Anda telah selesai 100% agar SO otomatis diteruskan ke divisi berikutnya.', 
+                side: "left", 
+                align: 'center' 
+            } 
+        },
+        { 
+            element: document.getElementById('tour-first-edit') ? '#tour-first-edit' : '#tour-col-edit',
+            popover: { 
+                title: 'Catat Cicilan Qty & Kendala', 
+                description: 'Klik ikon pensil ini jika Anda ingin mencatat progres jumlah pcs yang baru selesai sebagian atau melaporkan kendala produksi.', 
+                side: "left", 
+                align: 'center' 
+            } 
+        },
+        { 
+            element: '#tour-div-sop',
+            popover: { 
+                title: 'Pengingat SOP Divisi', 
+                description: 'Baris berjalan di bagian bawah ini berisi pengingat standar operasional prosedur (SOP) yang wajib dipatuhi tim sebelum menekan centang selesai.', 
+                side: "top", 
+                align: 'start' 
+            } 
+        }
+    );
+
+    const driverObj = driverFactory({
+        showProgress: true,
+        allowClose: true,
+        overlayColor: 'rgba(0, 0, 0, 0.75)',
+        nextBtnText: 'Lanjut &rarr;',
+        prevBtnText: '&larr; Kembali',
+        doneBtnText: 'Paham!',
+        steps: steps
+    });
+
+    driverObj.drive();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const hasSeenTour = localStorage.getItem('onion_update_status_tour_seen');
+    if (!hasSeenTour) {
+        setTimeout(() => {
+            jalankanTourUpdateStatus();
+            localStorage.setItem('onion_update_status_tour_seen', 'true');
+        }, 600);
+    }
+});
+
 function divisionManager() {
     return {
         activeDivision: '{{ $activeDivision }}',
