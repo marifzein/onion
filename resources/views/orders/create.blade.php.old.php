@@ -212,7 +212,7 @@
 
             <!-- Row 3: Bahan / Fabric & Target Deadline (1 Baris - 2 Kolom) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Dropdown Bahan POS -->
+                <!-- Dropdown Pencarian Bahan Otomatis dari DB (Persis Customer) -->
                 <div id="tour-create-fabric" class="relative" @click.outside="fabricDropdownOpen = false">
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">
                         Bahan / Fabric <span class="text-rose-500">*</span>
@@ -229,13 +229,15 @@
                             @keydown.escape="fabricDropdownOpen = false"
                             placeholder="Ketik nama bahan (cth: Ntech / Milano)..."
                             required
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50"
+                            autocomplete="off"
+                            class="w-full pl-4 pr-9 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50"
                         />
                         <div class="absolute right-3 top-3 text-slate-400 pointer-events-none">
-                            <i class="ph-bold ph-caret-down"></i>
+                            <i class="ph-bold ph-magnifying-glass"></i>
                         </div>
                     </div>
 
+                    <!-- Dropdown Hasil Pencarian Bahan -->
                     <div
                         x-show="fabricDropdownOpen && fabricItems.length > 0"
                         x-cloak
@@ -636,6 +638,7 @@ function orderForm() {
         form: {
             cabang_id: "{{ $cabangs->first()->id ?? 1 }}",
             customer_id: null,
+            fabric_id: null, // <-- Pastikan field ID bahan ada
             no_so: "{{ $noSo }}",
             customer_name: "",
             order_title: "",
@@ -646,6 +649,34 @@ function orderForm() {
             target_deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             notes: "",
             spk_photo_base64: null,
+        },
+
+        // Search API Bahan (Mirip Customer)
+        searchFabric() {
+            fetch(`/api/fabrics/search?q=${encodeURIComponent(this.form.fabric_type || '')}`)
+                .then(res => res.json())
+                .then(data => {
+                    this.fabricItems = data;
+                    this.fabricHighlightIndex = 0;
+                })
+                .catch(() => {});
+        },
+
+        navigateFabric(step) {
+            if (!this.fabricDropdownOpen || this.fabricItems.length === 0) return;
+            this.fabricHighlightIndex = (this.fabricHighlightIndex + step + this.fabricItems.length) % this.fabricItems.length;
+        },
+
+        selectCurrentFabric() {
+            if (this.fabricDropdownOpen && this.fabricItems.length > 0) {
+                this.selectFabricItem(this.fabricItems[this.fabricHighlightIndex]);
+            }
+        },
+
+        selectFabricItem(item) {
+            this.form.fabric_id = item.id;       // Simpan ID bahan dari DB
+            this.form.fabric_type = item.name;   // Tampilkan nama bahan di input
+            this.fabricDropdownOpen = false;
         },
 
         searchCustomer() {

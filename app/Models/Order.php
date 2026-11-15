@@ -20,6 +20,7 @@ class Order extends Model
         'order_type',
         'target_deadline',
         'spk_photo_path',
+        'size_photo_path',
         'notes',
         'current_status',
         'created_by',

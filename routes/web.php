@@ -59,6 +59,9 @@ Route::middleware(['auth'])->group(function () {
     // Sales Orders
     Route::resource('orders', OrderController::class);
 
+    Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
+    Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+
     // API data monitoring progress
     Route::get('/api/monitoring-data', [DashboardController::class, 'getMonitoringData'])->name('api.monitoring_data');
 });

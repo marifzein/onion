@@ -172,40 +172,48 @@ class OrderController extends Controller
             ], 401);
         }
 
-        // Validasi input dasar
         $validated = $request->validate([
-            'customer_id'     => 'required|exists:customers,id',
-            'customer_name'   => 'required|string|max:255',
-            'order_title'     => 'required|string|max:255',
-            'qty'             => 'required|integer|min:1',
-            'satuan'          => 'required|in:pcs,stel',
-            'fabric_type'     => 'required|string|max:255',
-            'order_type'      => 'nullable|string|max:255',
-            'target_deadline' => 'required|date',
-            'notes'           => 'nullable|string',
-            'spk_photo_base64'=> 'nullable|string',
+            'customer_id'       => 'required|exists:customers,id',
+            'customer_name'     => 'required|string|max:255',
+            'order_title'       => 'required|string|max:255',
+            'qty'               => 'required|integer|min:1',
+            'satuan'            => 'required|in:pcs,stel',
+            'fabric_type'       => 'required|string|max:255',
+            'order_type'        => 'nullable|string|max:255',
+            'target_deadline'   => 'required|date',
+            'notes'             => 'nullable|string',
+            'spk_photo_base64'  => 'nullable|string',
+            'size_photo_base64' => 'nullable|string',
         ]);
 
         $spkPath = null;
+        $sizePath = null; // <-- DEFINISIKAN DI SINI
 
-        // Proses kompresi biner WebP / Base64 dari HP atau Paste WA
+        // Proses kompresi biner SPK
         if (!empty($validated['spk_photo_base64']) && str_starts_with($validated['spk_photo_base64'], 'data:image')) {
             $imageParts = explode(';base64,', $validated['spk_photo_base64']);
             $imageBase64 = base64_decode($imageParts[1]);
-
             $fileName = 'spk_documents/' . time() . '-' . Str::random(5) . '.webp';
             Storage::disk('public')->put($fileName, $imageBase64);
             $spkPath = $fileName;
         }
 
+        // Proses kompresi biner Foto Size (Excel/Screenshot)
+        if (!empty($validated['size_photo_base64']) && str_starts_with($validated['size_photo_base64'], 'data:image')) {
+            $imageParts = explode(';base64,', $validated['size_photo_base64']);
+            $imageBase64 = base64_decode($imageParts[1]);
+            $fileName = 'size_documents/' . time() . '-' . Str::random(5) . '.webp';
+            Storage::disk('public')->put($fileName, $imageBase64);
+            $sizePath = $fileName; // <-- ISI PATH SIZE
+        }
+
         try {
-            $order = DB::transaction(function () use ($validated, $spkPath, $user) {
+            // PASTIKAN $sizePath ADA DI DALAM "use (...)"
+            $order = DB::transaction(function () use ($validated, $spkPath, $sizePath, $user) {
                 
-                // GENERATE ULANG NOMOR SO AMAN DI DALAM DATABASE TRANSACTION (Mencegah Race Condition / Dobel)
                 $todayDateStr = date('Ymd');
                 $prefix = 'SO-' . $todayDateStr . '-';
                 
-                // Gunakan lockForUpdate() agar aman jika ada 2 admin input bersamaan
                 $lastOrderToday = Order::where('no_so', 'LIKE', $prefix . '%')
                     ->orderBy('id', 'desc')
                     ->lockForUpdate()
@@ -227,6 +235,7 @@ class OrderController extends Controller
                     'order_type'      => $validated['order_type'] ?? 'Atasan Fullprint',
                     'target_deadline' => $validated['target_deadline'],
                     'spk_photo_path'  => $spkPath,
+                    'size_photo_path' => $sizePath, // <-- SIMPAN KE KOLOM DATABASE
                     'notes'           => $validated['notes'] ?? null,
                     'current_status'  => 'kaprod',
                     'created_by'      => $user->id,
@@ -267,10 +276,103 @@ class OrderController extends Controller
             if ($spkPath && Storage::disk('public')->exists($spkPath)) {
                 Storage::disk('public')->delete($spkPath);
             }
+            if ($sizePath && Storage::disk('public')->exists($sizePath)) {
+                Storage::disk('public')->delete($sizePath);
+            }
 
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Transaksi database gagal: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // Tampilkan Form Edit Sales Order
+    public function edit(Order $order)
+    {
+        $cabangs = Cabang::where('is_active', true)->get();
+        $order->load(['customer', 'cabang']);
+
+        return view('orders.edit', compact('order', 'cabangs'));
+    }
+
+    // Perbarui Data Sales Order di Database
+    public function update(Request $request, Order $order)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Sesi login telah berakhir, silakan login kembali.',
+            ], 401);
+        }
+
+        $validated = $request->validate([
+            'customer_id'       => 'required|exists:customers,id',
+            'customer_name'     => 'required|string|max:255',
+            'order_title'       => 'required|string|max:255',
+            'qty'               => 'required|integer|min:1',
+            'satuan'            => 'required|in:pcs,stel',
+            'fabric_type'       => 'required|string|max:255',
+            'order_type'        => 'nullable|string|max:255',
+            'target_deadline'   => 'required|date',
+            'notes'             => 'nullable|string',
+            'spk_photo_base64'  => 'nullable|string',
+            'size_photo_base64' => 'nullable|string',
+        ]);
+
+        $spkPath = $order->spk_photo_path;
+        $sizePath = $order->size_photo_path;
+
+        // Jika ada upload/paste baru untuk SPK
+        if (!empty($validated['spk_photo_base64']) && str_starts_with($validated['spk_photo_base64'], 'data:image')) {
+            if ($spkPath && Storage::disk('public')->exists($spkPath)) {
+                Storage::disk('public')->delete($spkPath);
+            }
+            $imageParts = explode(';base64,', $validated['spk_photo_base64']);
+            $imageBase64 = base64_decode($imageParts[1]);
+            $fileName = 'spk_documents/' . time() . '-' . Str::random(5) . '.webp';
+            Storage::disk('public')->put($fileName, $imageBase64);
+            $spkPath = $fileName;
+        }
+
+        // Jika ada upload/paste baru untuk Size
+        if (!empty($validated['size_photo_base64']) && str_starts_with($validated['size_photo_base64'], 'data:image')) {
+            if ($sizePath && Storage::disk('public')->exists($sizePath)) {
+                Storage::disk('public')->delete($sizePath);
+            }
+            $imageParts = explode(';base64,', $validated['size_photo_base64']);
+            $imageBase64 = base64_decode($imageParts[1]);
+            $fileName = 'size_documents/' . time() . '-' . Str::random(5) . '.webp';
+            Storage::disk('public')->put($fileName, $imageBase64);
+            $sizePath = $fileName;
+        }
+
+        try {
+            $order->update([
+                'customer_id'     => $validated['customer_id'],
+                'customer_name'   => $validated['customer_name'],
+                'order_title'     => $validated['order_title'],
+                'qty'             => $validated['qty'],
+                'satuan'          => $validated['satuan'],
+                'fabric_type'     => $validated['fabric_type'],
+                'order_type'      => $validated['order_type'] ?? 'Atasan Fullprint',
+                'target_deadline' => $validated['target_deadline'],
+                'spk_photo_path'  => $spkPath,
+                'size_photo_path' => $sizePath,
+                'notes'           => $validated['notes'] ?? null,
+            ]);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => "Order {$order->no_so} berhasil diperbarui!",
+                'order'   => $order,
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal memperbarui database: ' . $e->getMessage(),
             ], 500);
         }
     }

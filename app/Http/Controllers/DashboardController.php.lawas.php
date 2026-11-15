@@ -7,20 +7,17 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Helper untuk memformat list order menjadi array terstruktur
+     */
+    private function getFormattedOrders($cabangId)
     {
-        $user = auth()->user();
-        $cabangId = $user->cabang_id ?? 1;
-
-        // Ambil order aktif, urutkan dari deadline terdekat
-        $orders = Order::with(['customer', 'stationProgress'])
+        return Order::with(['customer', 'stationProgress'])
             ->where('cabang_id', $cabangId)
             ->orderByRaw("CASE WHEN current_status = 'selesai' THEN 1 ELSE 0 END ASC")
             ->orderBy('target_deadline', 'asc')
             ->get()
             ->map(function ($order) {
-                // Tentukan step_active (1 s/d 7)
-                // 1: Admin, 2: Ka Prod, 3: Bahan, 4: Print, 5: Jahit, 6: Finishing, 7: QC / Selesai
                 $stepMap = [
                     'kaprod'    => 2,
                     'bahan'     => 3,
@@ -61,7 +58,6 @@ class DashboardController extends Controller
                     ? 100 
                     : ($order->qty > 0 ? round(($stepActive / 7) * 100) : 10);
 
-                // Deadline urgent check (hari ini atau terlewat)
                 $deadlineDate = \Carbon\Carbon::parse($order->target_deadline);
                 $isUrgent = !$isClosed && ($deadlineDate->isPast() || $deadlineDate->isToday());
 
@@ -87,8 +83,32 @@ class DashboardController extends Controller
                     'step_active'       => $stepActive,
                 ];
             });
+    }
+
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $cabangId = $user->cabang_id ?? 1;
+
+        $orders = $this->getFormattedOrders($cabangId);
 
         return view('dashboard.monitoring', compact('orders'));
+    }
+
+    /**
+     * Endpoint API JSON untuk Real-Time Polling 5 Detik
+     */
+    public function getMonitoringData(Request $request)
+    {
+        $user = auth()->user();
+        $cabangId = $user->cabang_id ?? 1;
+
+        $orders = $this->getFormattedOrders($cabangId);
+
+        return response()->json([
+            'status' => 'success',
+            'orders' => $orders,
+        ]);
     }
 
     public function summary()
@@ -96,34 +116,28 @@ class DashboardController extends Controller
         $user = auth()->user();
         $cabangId = $user->cabang_id ?? 1;
 
-        // Total order masuk bulan berjalan
         $totalBulanIni = Order::where('cabang_id', $cabangId)
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->count();
 
-        // Sedang aktif di stasiun produksi (kaprod s/d qc)
         $sedangProses = Order::where('cabang_id', $cabangId)
             ->whereIn('current_status', ['kaprod', 'bahan', 'print', 'jahit', 'finishing'])
             ->count();
 
-        // Deadline hari ini / mendesak yang belum selesai
         $deadlineHariIni = Order::where('cabang_id', $cabangId)
             ->where('current_status', '!=', 'selesai')
             ->whereDate('target_deadline', '<=', today())
             ->count();
 
-        // Siap Diambil / Kirim (sudah lolos QC tapi belum ditutup selesai oleh admin)
         $siapKirim = Order::where('cabang_id', $cabangId)
             ->where('current_status', 'qc')
             ->count();
 
-        // Selesai (Closed)
         $totalSelesai = Order::where('cabang_id', $cabangId)
             ->where('current_status', 'selesai')
             ->count();
 
-        // Breakdown antrean per stasiun kerja
         $perStasiun = [
             'kaprod'    => Order::where('cabang_id', $cabangId)->where('current_status', 'kaprod')->count(),
             'bahan'     => Order::where('cabang_id', $cabangId)->where('current_status', 'bahan')->count(),
@@ -133,7 +147,6 @@ class DashboardController extends Controller
             'qc'        => $siapKirim,
         ];
 
-        // 5 Order paling mendesak untuk ditampilkan di tabel ringkasan
         $urgentOrders = Order::with('customer')
             ->where('cabang_id', $cabangId)
             ->where('current_status', '!=', 'selesai')
@@ -149,22 +162,6 @@ class DashboardController extends Controller
             'totalSelesai',
             'perStasiun',
             'urgentOrders'
-        ));
-    }
-    
-    public function summary_old()
-    {
-        // Hitung metrik sederhana
-        $totalBulanIni = Order::whereMonth('created_at', now()->month)->count();
-        $sedangProses = Order::whereNotIn('current_status', ['draft_admin', 'closed'])->count();
-        $deadlineHariIni = Order::whereDate('target_deadline', today())->count();
-        $siapKirim = Order::where('current_status', 'proses_finishing')->count();
-
-        return view('dashboard', compact(
-            'totalBulanIni',
-            'sedangProses',
-            'deadlineHariIni',
-            'siapKirim'
         ));
     }
 }

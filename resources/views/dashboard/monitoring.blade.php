@@ -2,7 +2,6 @@
 
 @section('content')
 <style>
-    /* Animasi Ticker Running Text pelan */
     @keyframes slowMarquee {
         0% { transform: translateX(100%); }
         100% { transform: translateX(-100%); }
@@ -15,7 +14,6 @@
     .animate-marquee-slow:hover {
         animation-play-state: paused;
     }
-    /* status berpendar */
     @keyframes glowPulse {
     0%, 100% {
         box-shadow: 0 0 0 0 rgba(var(--glow-color), 0.7), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -26,7 +24,6 @@
         transform: scale(1.08);
         }
     }
-
     .glow-active {
         animation: glowPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         z-index: 2;
@@ -56,14 +53,12 @@
                             class="cursor-pointer transition-colors group"
                             :class="order.is_closed ? 'bg-slate-50/70 opacity-60 hover:opacity-100 hover:bg-slate-100' : 'hover:bg-indigo-50/40'"
                         >
-                            <!-- No -->
                             <td
                                 class="py-2 px-2 text-center font-black text-base"
                                 :class="order.is_closed ? 'text-slate-500' : 'text-black'"
                                 x-text="idx + 1"
                             ></td>
 
-                            <!-- SO & Customer -->
                             <td class="py-2 px-2">
                                 <div class="truncate">
                                     <p
@@ -78,7 +73,6 @@
                                 </div>
                             </td>
 
-                            <!-- Fabric & Qty -->
                             <td class="py-2 px-2">
                                 <div class="truncate">
                                     <p class="text-xs font-black text-black" x-text="order.fabric"></p>
@@ -86,7 +80,6 @@
                                 </div>
                             </td>
 
-                            <!-- Deadline -->
                             <td class="py-2 px-2">
                                 <p
                                     class="text-sm font-black leading-tight"
@@ -103,14 +96,9 @@
                             <!-- Stepper Horizontal (7 Tahap) -->
                             <td class="py-2 px-3">
                                 <div class="flex items-center justify-between w-full px-1">
-                                    
                                     <!-- 1. Admin -->
                                     <div class="w-10 shrink-0 flex flex-col items-center">
-                                        <div
-                                            class="w-7 h-7 rounded-full text-white flex items-center justify-center font-bold shadow-xs transition-all"
-                                            :class="order.step_active === 1 && !order.is_closed ? 'glow-active' : ''"
-                                            style="background-color: #cb6ce6; --glow-color: 203, 108, 230;"
-                                        >
+                                        <div class="w-7 h-7 rounded-full text-white flex items-center justify-center font-bold shadow-xs transition-all" :class="order.step_active === 1 && !order.is_closed ? 'glow-active' : ''" style="background-color: #cb6ce6; --glow-color: 203, 108, 230;">
                                             <i class="ph-bold ph-check text-xs"></i>
                                         </div>
                                         <span class="text-[9px] font-black mt-0.5 uppercase tracking-tight text-black">Admin</span>
@@ -119,14 +107,7 @@
 
                                     <!-- 2. Ka Prod -->
                                     <div class="w-10 shrink-0 flex flex-col items-center">
-                                        <div
-                                            class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all"
-                                            :class="[
-                                                order.step_active >= 2 ? 'text-white shadow-xs' : 'bg-slate-200 text-transparent',
-                                                order.step_active === 2 && !order.is_closed ? 'glow-active ring-4 ring-blue-200' : ''
-                                            ]"
-                                            :style="order.step_active >= 2 ? 'background-color: #5170ff; --glow-color: 81, 112, 255;' : ''"
-                                        >
+                                        <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all" :class="[order.step_active >= 2 ? 'text-white shadow-xs' : 'bg-slate-200 text-transparent', order.step_active === 2 && !order.is_closed ? 'glow-active ring-4 ring-blue-200' : '']" :style="order.step_active >= 2 ? 'background-color: #5170ff; --glow-color: 81, 112, 255;' : ''">
                                             <i class="ph-bold ph-check text-xs" x-show="order.step_active >= 2"></i>
                                         </div>
                                         <span class="text-[9px] mt-0.5 uppercase tracking-tight" :class="order.step_active >= 2 ? 'font-black text-black' : 'font-bold text-slate-400'">Ka Prod</span>
@@ -135,14 +116,7 @@
 
                                     <!-- 3. Bahan -->
                                     <div class="w-10 shrink-0 flex flex-col items-center">
-                                        <div
-                                            class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all"
-                                            :class="[
-                                                order.step_active >= 3 ? 'text-white shadow-xs' : 'bg-slate-200 text-transparent',
-                                                order.step_active === 3 && !order.is_closed ? 'glow-active ring-4 ring-cyan-200' : ''
-                                            ]"
-                                            :style="order.step_active >= 3 ? 'background-color: #0cc0df; --glow-color: 12, 192, 223;' : ''"
-                                        >
+                                        <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all" :class="[order.step_active >= 3 ? 'text-white shadow-xs' : 'bg-slate-200 text-transparent', order.step_active === 3 && !order.is_closed ? 'glow-active ring-4 ring-cyan-200' : '']" :style="order.step_active >= 3 ? 'background-color: #0cc0df; --glow-color: 12, 192, 223;' : ''">
                                             <i class="ph-bold ph-check text-xs" x-show="order.step_active >= 3"></i>
                                         </div>
                                         <span class="text-[9px] mt-0.5 uppercase tracking-tight" :class="order.step_active >= 3 ? 'font-black text-black' : 'font-bold text-slate-400'">Bahan</span>
@@ -151,14 +125,7 @@
 
                                     <!-- 4. Printing -->
                                     <div class="w-10 shrink-0 flex flex-col items-center">
-                                        <div
-                                            class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all"
-                                            :class="[
-                                                order.step_active >= 4 ? 'text-white shadow-xs' : 'bg-slate-200 text-transparent',
-                                                order.step_active === 4 && !order.is_closed ? 'glow-active ring-4 ring-orange-200' : ''
-                                            ]"
-                                            :style="order.step_active >= 4 ? 'background-color: #ff914d; --glow-color: 255, 145, 77;' : ''"
-                                        >
+                                        <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all" :class="[order.step_active >= 4 ? 'text-white shadow-xs' : 'bg-slate-200 text-transparent', order.step_active === 4 && !order.is_closed ? 'glow-active ring-4 ring-orange-200' : '']" :style="order.step_active >= 4 ? 'background-color: #ff914d; --glow-color: 255, 145, 77;' : ''">
                                             <i class="ph-bold ph-check text-xs" x-show="order.step_active >= 4"></i>
                                         </div>
                                         <span class="text-[9px] mt-0.5 uppercase tracking-tight" :class="order.step_active >= 4 ? 'font-black text-black' : 'font-bold text-slate-400'">Print</span>
@@ -167,14 +134,7 @@
 
                                     <!-- 5. Jahit -->
                                     <div class="w-10 shrink-0 flex flex-col items-center">
-                                        <div
-                                            class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all"
-                                            :class="[
-                                                order.step_active >= 5 ? 'text-slate-900 shadow-xs' : 'bg-slate-200 text-transparent',
-                                                order.step_active === 5 && !order.is_closed ? 'glow-active ring-4 ring-sky-200' : ''
-                                            ]"
-                                            :style="order.step_active >= 5 ? 'background-color: #5ce7ff; --glow-color: 92, 231, 255;' : ''"
-                                        >
+                                        <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all" :class="[order.step_active >= 5 ? 'text-slate-900 shadow-xs' : 'bg-slate-200 text-transparent', order.step_active === 5 && !order.is_closed ? 'glow-active ring-4 ring-sky-200' : '']" :style="order.step_active >= 5 ? 'background-color: #5ce7ff; --glow-color: 92, 231, 255;' : ''">
                                             <i class="ph-bold ph-check text-xs" x-show="order.step_active >= 5"></i>
                                         </div>
                                         <span class="text-[9px] mt-0.5 uppercase tracking-tight" :class="order.step_active >= 5 ? 'font-black text-black' : 'font-bold text-slate-400'">Jahit</span>
@@ -183,14 +143,7 @@
 
                                     <!-- 6. Finishing -->
                                     <div class="w-10 shrink-0 flex flex-col items-center">
-                                        <div
-                                            class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all"
-                                            :class="[
-                                                order.step_active >= 6 ? 'text-white shadow-xs' : 'bg-slate-200 text-transparent',
-                                                order.step_active === 6 && !order.is_closed ? 'glow-active ring-4 ring-lime-200' : ''
-                                            ]"
-                                            :style="order.step_active >= 6 ? 'background-color: #74cc00; --glow-color: 116, 204, 0;' : ''"
-                                        >
+                                        <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all" :class="[order.step_active >= 6 ? 'text-white shadow-xs' : 'bg-slate-200 text-transparent', order.step_active === 6 && !order.is_closed ? 'glow-active ring-4 ring-lime-200' : '']" :style="order.step_active >= 6 ? 'background-color: #74cc00; --glow-color: 116, 204, 0;' : ''">
                                             <i class="ph-bold ph-check text-xs" x-show="order.step_active >= 6"></i>
                                         </div>
                                         <span class="text-[9px] mt-0.5 uppercase tracking-tight" :class="order.step_active >= 6 ? 'font-black text-black' : 'font-bold text-slate-400'">Finishing</span>
@@ -199,23 +152,11 @@
 
                                     <!-- 7. QC / Selesai -->
                                     <div class="w-10 shrink-0 flex flex-col items-center">
-                                        <div
-                                            class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all"
-                                            :class="[
-                                                order.step_active >= 7 ? 'text-white shadow-xs' : 'bg-slate-200 text-transparent',
-                                                order.step_active === 7 && !order.is_closed ? 'glow-active ring-4 ring-emerald-200' : ''
-                                            ]"
-                                            :style="order.step_active >= 7 ? 'background-color: #00bf63; --glow-color: 0, 191, 99;' : ''"
-                                        >
+                                        <div class="w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all" :class="[order.step_active >= 7 ? 'text-white shadow-xs' : 'bg-slate-200 text-transparent', order.step_active === 7 && !order.is_closed ? 'glow-active ring-4 ring-emerald-200' : '']" :style="order.step_active >= 7 ? 'background-color: #00bf63; --glow-color: 0, 191, 99;' : ''">
                                             <i class="ph-bold ph-check text-xs" x-show="order.step_active >= 7"></i>
                                         </div>
-                                        <span
-                                            class="text-[9px] mt-0.5 uppercase tracking-tight"
-                                            :class="order.step_active >= 7 ? 'font-black text-black' : 'font-bold text-slate-400'"
-                                            x-text="order.is_closed ? 'SELESAI' : 'QC'"
-                                        ></span>
+                                        <span class="text-[9px] mt-0.5 uppercase tracking-tight" :class="order.step_active >= 7 ? 'font-black text-black' : 'font-bold text-slate-400'" x-text="order.is_closed ? 'SELESAI' : 'QC'"></span>
                                     </div>
-
                                 </div>
                             </td>
                         </tr>
@@ -225,7 +166,7 @@
         </div>
     </div>
 
-    <!-- RUNNING TEXT FOOTER PERSIS PROTOTIPE -->
+    <!-- RUNNING TEXT FOOTER -->
     <footer class="bg-black text-white h-10 px-5 flex items-center overflow-hidden border-t border-slate-800 shrink-0 select-none rounded-xl mt-2">
         <div class="flex items-center w-full">
             <div class="flex items-center gap-1.5 bg-rose-600 text-white font-black text-xs uppercase tracking-wider px-2.5 py-0.5 rounded-md shrink-0 mr-3 shadow-xs">
@@ -243,14 +184,13 @@
                             <span class="mx-6 text-slate-500 font-black">&bull;</span>
                         </span>
                     </template>
-                    <span class="text-slate-300">Klik baris orderan untuk membuka dialog rincian lengkap SPK & lembar formulir fisik.</span>
-                    <span class="mx-6 text-slate-500 font-black">&bull;</span>
+                    <span class="text-slate-300">Klik baris orderan untuk membuka dialog rincian lengkap SPK & Breakdown Size.</span>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- MODAL POPUP DETAIL SPK -->
+    <!-- MODAL POPUP DETAIL SPK & BREAKDOWN SIZE -->
     <div
         x-show="selectedOrder"
         x-cloak
@@ -261,7 +201,6 @@
             @click.outside="selectedOrder = null"
             class="bg-white rounded-3xl border border-slate-300 shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden"
         >
-            <!-- Modal Header -->
             <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
@@ -276,7 +215,9 @@
                                 x-text="selectedOrder?.current_div"
                             ></span>
                         </div>
-                        <p class="text-xs text-slate-400 font-mono" x-text="selectedOrder?.so + ' • Masuk: ' + selectedOrder?.order_in"></p>
+                        <!-- JUDUL ORDER / EVENT DITAMPILKAN DI SINI -->
+                        <p class="text-xs font-bold text-amber-400 mt-0.5" x-text="'Event/Judul: ' + (selectedOrder?.order_title || '-')"></p>
+                        <p class="text-xs text-slate-400 font-mono mt-0.5" x-text="selectedOrder?.so + ' • Masuk: ' + selectedOrder?.order_in"></p>
                     </div>
                 </div>
                 <button
@@ -288,10 +229,8 @@
                 </button>
             </div>
 
-            <!-- Modal Content -->
             <div class="p-6 overflow-y-auto space-y-4 text-slate-800 text-xs">
                 
-                <!-- Box Progress Realtime -->
                 <div class="bg-indigo-50/60 border border-indigo-200 rounded-2xl p-4">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
@@ -312,15 +251,17 @@
                     </div>
                 </div>
 
-                <!-- 2 Kolom Spesifikasi & Foto Form SPK -->
+                <!-- 2 Kolom Spesifikasi & Rincian -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    <!-- Rincian Spesifikasi -->
                     <div class="space-y-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-200">
                         <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                             <i class="ph-bold ph-info"></i> Rincian Spesifikasi Order
                         </h4>
                         <div class="space-y-1.5 text-xs">
+                            <div class="flex justify-between border-b border-slate-200 pb-1">
+                                <span class="text-slate-500">Judul / Event:</span>
+                                <span class="font-black text-indigo-700" x-text="selectedOrder?.order_title"></span>
+                            </div>
                             <div class="flex justify-between border-b border-slate-200 pb-1">
                                 <span class="text-slate-500">Tipe Pesanan:</span>
                                 <span class="font-black text-black" x-text="selectedOrder?.type"></span>
@@ -344,53 +285,66 @@
                         </div>
                     </div>
 
-                    <!-- Lembar Form SPK Fisik -->
-                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col justify-between">
+                    <!-- Catatan Spesifikasi Khusus -->
+                    <div class="bg-amber-50/70 border border-amber-200 p-4 rounded-2xl flex flex-col justify-between">
                         <div>
-                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
-                                <span class="flex items-center gap-1.5"><i class="ph-bold ph-image"></i> Lembar Form SPK Fisik</span>
-                                <span class="text-[10px] text-indigo-600 font-bold lowercase">klik foto untuk perbesar</span>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-amber-800 mb-1 flex items-center gap-1.5">
+                                <i class="ph-bold ph-warning-circle"></i> Catatan Spesifikasi Khusus:
                             </h4>
-                            <div
-                                @click="if (selectedOrder?.spk_image) zoomImage = true"
-                                class="w-full h-44 bg-slate-200 rounded-xl overflow-hidden border border-slate-300 cursor-zoom-in relative group flex items-center justify-center"
-                            >
-                                <template x-if="selectedOrder?.spk_image">
-                                    <img
-                                        :src="selectedOrder?.spk_image"
-                                        alt="Foto SPK"
-                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    />
-                                </template>
-                                <template x-if="!selectedOrder?.spk_image">
-                                    <div class="text-center p-4 text-slate-400">
-                                        <i class="ph-bold ph-image-broken text-3xl mb-1"></i>
-                                        <p class="text-xs font-bold">Tidak ada lampiran foto fisik</p>
-                                    </div>
-                                </template>
-                                <div
-                                    x-show="selectedOrder?.spk_image"
-                                    class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-black"
-                                >
-                                    <i class="ph-bold ph-magnifying-glass-plus text-lg mr-1"></i> Perbesar Foto
+                            <p class="text-xs font-bold text-slate-800 leading-relaxed" x-text="selectedOrder?.description"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2 Kolom Gambar: Lembar SPK & Breakdown Size -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <!-- Foto SPK Fisik -->
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5"><i class="ph-bold ph-image"></i> Form SPK Fisik</span>
+                            <span class="text-[10px] text-indigo-600 font-bold lowercase">klik untuk perbesar</span>
+                        </h4>
+                        <div
+                            @click="if (selectedOrder?.spk_image) { zoomImage = true; zoomActiveUrl = selectedOrder.spk_image; }"
+                            class="w-full h-40 bg-slate-200 rounded-xl overflow-hidden border border-slate-300 cursor-zoom-in relative group flex items-center justify-center"
+                        >
+                            <template x-if="selectedOrder?.spk_image">
+                                <img :src="selectedOrder?.spk_image" alt="SPK" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            </template>
+                            <template x-if="!selectedOrder?.spk_image">
+                                <div class="text-center p-4 text-slate-400">
+                                    <i class="ph-bold ph-image-broken text-2xl mb-1"></i>
+                                    <p class="text-[11px] font-bold">Tidak ada lampiran SPK</p>
                                 </div>
-                            </div>
+                            </template>
                         </div>
                     </div>
 
-                </div>
-
-                <!-- Catatan Spesifikasi Khusus -->
-                <div class="bg-amber-50/70 border border-amber-200 p-4 rounded-2xl">
-                    <h4 class="text-xs font-black uppercase tracking-wider text-amber-800 mb-1 flex items-center gap-1.5">
-                        <i class="ph-bold ph-warning-circle"></i> Catatan Spesifikasi Khusus:
-                    </h4>
-                    <p class="text-xs font-bold text-slate-800 leading-relaxed" x-text="selectedOrder?.description"></p>
+                    <!-- Foto Breakdown Size (Excel/Screenshot) -->
+                    <div class="bg-cyan-50/40 p-4 rounded-2xl border border-cyan-200">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-cyan-950 mb-2 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5"><i class="ph-bold ph-ruler"></i> Breakdown Size (Excel)</span>
+                            <span class="text-[10px] text-cyan-700 font-bold lowercase">klik untuk perbesar</span>
+                        </h4>
+                        <div
+                            @click="if (selectedOrder?.size_image) { zoomImage = true; zoomActiveUrl = selectedOrder.size_image; }"
+                            class="w-full h-40 bg-cyan-100/50 rounded-xl overflow-hidden border border-cyan-300 cursor-zoom-in relative group flex items-center justify-center"
+                        >
+                            <template x-if="selectedOrder?.size_image">
+                                <img :src="selectedOrder?.size_image" alt="Size" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            </template>
+                            <template x-if="!selectedOrder?.size_image">
+                                <div class="text-center p-4 text-slate-400">
+                                    <i class="ph-bold ph-image-broken text-2xl mb-1"></i>
+                                    <p class="text-[11px] font-bold">Tidak ada lampiran size</p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
                 </div>
 
             </div>
 
-            <!-- Modal Footer -->
             <div class="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
                     <i class="ph-bold ph-info text-indigo-600"></i>
@@ -406,7 +360,7 @@
             </div>
         </div>
 
-        <!-- Zoom Modal Foto SPK Layar Penuh -->
+        <!-- Zoom Modal Layar Penuh -->
         <div
             x-show="zoomImage"
             x-cloak
@@ -414,11 +368,7 @@
             @click="zoomImage = false"
         >
             <div class="max-w-4xl max-h-[92vh] bg-white p-2 rounded-2xl overflow-hidden shadow-2xl relative">
-                <img
-                    :src="selectedOrder?.spk_image"
-                    alt="Foto SPK Layar Penuh"
-                    class="w-full h-full max-h-[88vh] object-contain"
-                />
+                <img :src="zoomActiveUrl" alt="Zoom Layar Penuh" class="w-full h-full max-h-[88vh] object-contain" />
                 <button
                     type="button"
                     @click.stop="zoomImage = false"
@@ -438,11 +388,11 @@ function monitoringApp() {
     return {
         selectedOrder: null,
         zoomImage: false,
+        zoomActiveUrl: '',
         orderList: @json($orders),
         pollingTimer: null,
 
         init() {
-            // Jalankan polling otomatis setiap 5000 ms (5 detik)
             this.pollingTimer = setInterval(() => {
                 this.fetchData();
             }, 5000);
@@ -458,10 +408,8 @@ function monitoringApp() {
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // Update array orderList tanpa reload page
                     this.orderList = data.orders;
 
-                    // Jika popup modal SPK sedang terbuka, update datanya juga
                     if (this.selectedOrder) {
                         const updated = data.orders.find(o => o.id === this.selectedOrder.id);
                         if (updated) {

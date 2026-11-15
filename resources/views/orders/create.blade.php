@@ -6,11 +6,10 @@
 <!-- PeerJS P2P -->
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <!-- Driver.js Assets (CSS & JS) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
-<script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+<link rel="stylesheet" href="{{ asset('css/driver.css') }}">
+<script src="{{ asset('js/driver.js.iife.js') }}"></script>
 
 <style>
-    /* Animasi Berdenyut Tombol Panduan Oranye */
     @keyframes pulseOrange {
         0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.65); }
         70% { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(249, 115, 22, 0); }
@@ -23,54 +22,22 @@
         animation: none;
         transform: scale(1.1);
     }
-
-    /* Styling Popover Driver.js ala TataKas */
     .driver-popover .driver-popover-next-btn,
     .driver-popover .driver-popover-done-btn {
         background-color: #10b981 !important;
         color: #ffffff !important;
         border: none !important;
-        text-shadow: none !important;
         font-weight: 600 !important;
         font-size: 12px !important;
         padding: 6px 14px !important;
         border-radius: 8px !important;
-    }
-    .driver-popover .driver-popover-next-btn:hover,
-    .driver-popover .driver-popover-done-btn:hover {
-        background-color: #059669 !important;
-    }
-    .driver-popover .driver-popover-prev-btn {
-        background-color: #f1f5f9 !important;
-        color: #475569 !important;
-        border: 1px solid #cbd5e1 !important;
-        font-weight: 600 !important;
-        font-size: 12px !important;
-        padding: 6px 14px !important;
-        border-radius: 8px !important;
-    }
-    .driver-popover {
-        border-radius: 16px !important;
-        padding: 16px !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15) !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-    }
-    .driver-popover-title {
-        font-weight: 700 !important;
-        color: #1e293b !important;
-        font-size: 15px !important;
-    }
-    .driver-popover-description {
-        color: #64748b !important;
-        font-size: 13px !important;
-        line-height: 1.5 !important;
     }
 </style>
 
 <div
     x-data="orderForm()"
     x-init="initP2PReceiver()"
-    class="max-w-4xl w-full mx-auto p-2 md:p-4 flex flex-col justify-center"
+    class="max-w-4xl w-full mx-auto p-2 md:p-4 flex flex-col justify-center pb-12"
 >
     <div class="bg-white rounded-3xl border border-slate-300 shadow-xs p-6 md:p-8">
         <!-- Header Form -->
@@ -81,9 +48,16 @@
                     Pesanan otomatis diteruskan ke antrean <strong class="text-indigo-600">Ka Prod &bull; Bahan &bull; Print &bull; Jahit &bull; QC &bull; Finishing</strong>
                 </p>
             </div>
-            <div class="text-right">
-                <span class="text-[11px] font-bold text-slate-400 block uppercase">No. Registrasi SO</span>
-                <span class="font-mono text-base font-black text-indigo-700" x-text="form.no_so"></span>
+            
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                    <span class="text-[11px] font-bold text-slate-400 block uppercase">No. Registrasi SO</span>
+                    <span class="font-mono text-base font-black text-indigo-700" x-text="form.no_so"></span>
+                </div>
+                <!-- Tombol Kembali ke Daftar SO -->
+                <a href="{{ route('orders.index') }}" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-xs" title="Kembali">
+                    <i class="ph-bold ph-arrow-left text-lg"></i>
+                </a>
             </div>
         </div>
 
@@ -100,16 +74,14 @@
                 </select>
             </div>
 
-            <!-- Row 1: Customer (dengan Tombol Tambah Cepat) & Judul Order -->
+            <!-- Row 1: Customer & Judul Order -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Dropdown Pencarian Customer Otomatis POS -->
                 <div id="tour-create-customer" class="relative" @click.outside="customerDropdownOpen = false">
                     <div class="flex items-center justify-between mb-1.5">
                         <label class="block text-xs font-black uppercase text-slate-700">
                             Nama Customer / Instansi <span class="text-rose-500">*</span>
                         </label>
                         <button
-                            id="tour-btn-quick-cust"
                             type="button"
                             @click="openCustomerModal = true"
                             class="text-xs font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
@@ -127,7 +99,7 @@
                             @keydown.arrow-up.prevent="navigateCustomer(-1)"
                             @keydown.enter.prevent="selectCurrentCustomer()"
                             @keydown.escape="customerDropdownOpen = false"
-                            placeholder="Ketik nama customer / instansi (cth: Semen Gresik)..."
+                            placeholder="Ketik nama customer / instansi..."
                             required
                             autocomplete="off"
                             class="w-full pl-4 pr-9 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50"
@@ -137,7 +109,6 @@
                         </div>
                     </div>
 
-                    <!-- Dropdown Hasil Pencarian Customer -->
                     <div
                         x-show="customerDropdownOpen && customerItems.length > 0"
                         x-cloak
@@ -154,7 +125,6 @@
                                     <span class="block text-xs font-black" x-text="c.name"></span>
                                     <span class="text-[10px] text-slate-400" x-text="(c.pic_name ? 'PIC: ' + c.pic_name : '') + (c.phone ? ' • ' + c.phone : '')"></span>
                                 </div>
-                                <i class="ph-bold ph-arrow-bend-down-left text-slate-400" x-show="customerHighlightIndex === index"></i>
                             </div>
                         </template>
                     </div>
@@ -164,15 +134,13 @@
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">
                         Judul Order / Event <span class="text-rose-500">*</span>
                     </label>
-                    <div class="relative">
-                        <input
-                            type="text"
-                            x-model="form.order_title"
-                            placeholder="Misal: Reuni Akbar ..."
-                            required
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50 placeholder:font-normal placeholder:text-slate-400"
-                        />
-                    </div>
+                    <input
+                        type="text"
+                        x-model="form.order_title"
+                        placeholder="Misal: Reuni Akbar ..."
+                        required
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50"
+                    />
                 </div>
             </div>
 
@@ -181,7 +149,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                     <div>
                         <label class="block text-xs font-black uppercase text-slate-900 mb-1.5 flex items-center gap-1.5">
-                            <i class="ph-bold ph-hash text-indigo-600"></i> Jumlah / Qty <span class="text-rose-500">*</span>
+                            <i class="ph-bold ph-hash text-indigo-600"></i> Jumlah / Qty Total <span class="text-rose-500">*</span>
                         </label>
                         <input
                             type="number"
@@ -204,15 +172,71 @@
                         </select>
                     </div>
                 </div>
-                <div class="mt-2.5 flex items-center gap-2 text-xs font-bold text-slate-600">
-                    <span>Preview Total:</span>
-                    <span class="px-2.5 py-0.5 rounded-lg bg-indigo-600 text-white font-black text-xs" x-text="form.qty + ' ' + form.satuan"></span>
+            </div>
+
+            <!-- ==================== UPLOAD GAMBAR / PASTE SIZE (EXCEL & PRINT SCREEN) ==================== -->
+            <!-- ==================== UPLOAD / PASTE GAMBAR SIZE ==================== -->
+            <div class="p-4 bg-cyan-50/40 rounded-2xl border border-cyan-200">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-xs font-black uppercase text-cyan-950 flex items-center gap-1.5">
+                        <i class="ph-bold ph-ruler text-cyan-700 text-base"></i> Lampiran Breakdown Size (Excel / Screenshot) <span class="text-rose-500">*</span>
+                    </label>
+                    
+                    <!-- TOMBOL KECIL DI LUAR INPUT UNTUK PILIH FILE DARI EXPLORER -->
+                    <button
+                        type="button"
+                        @click="$refs.sizeFileInput.click()"
+                        class="px-2.5 py-1 bg-white hover:bg-cyan-100 border border-cyan-300 text-cyan-800 rounded-lg text-[11px] font-black flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
+                    >
+                        <i class="ph-bold ph-folder-open text-cyan-700"></i>
+                        <span>Upload File Gambar</span>
+                    </button>
+                </div>
+
+                <!-- KOTAK AREA PASTE (KLIK FOKUS, TIDAK MEMBUKA EXPLORER) -->
+                <div
+                    @paste.window="handleSizePaste($event)"
+                    tabindex="0"
+                    class="relative border-2 border-dashed rounded-xl p-4 transition-all flex flex-col items-center justify-center text-center focus:outline-none focus:border-indigo-600 bg-white"
+                    :class="sizePreview ? 'border-emerald-400 bg-emerald-50/20' : 'border-cyan-300 hover:border-cyan-400'"
+                >
+                    <!-- File input tersembunyi yang hanya dipicu oleh tombol di atas -->
+                    <input type="file" x-ref="sizeFileInput" @change="handleSizeFileInput($event)" accept="image/*" class="hidden" />
+
+                    <template x-if="!sizePreview">
+                        <div class="py-3 flex flex-col items-center select-none pointer-events-none">
+                            <div class="w-10 h-10 rounded-2xl bg-cyan-100 text-cyan-700 flex items-center justify-center mb-1.5">
+                                <i class="ph-bold ph-clipboard-text text-2xl"></i>
+                            </div>
+                            <p class="text-xs font-black text-slate-800">
+                                Klik area ini lalu <span class="text-indigo-600 underline">Ctrl + V</span> (Paste tabel Excel atau PrintScreen)
+                            </p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Area siap menerima tempelan gambar dari clipboard</p>
+                        </div>
+                    </template>
+
+                    <template x-if="sizePreview">
+                        <div class="w-full flex items-center justify-between gap-4" @click.stop>
+                            <div class="flex items-center gap-3">
+                                <img :src="sizePreview" class="w-14 h-14 object-cover rounded-xl border border-slate-300" />
+                                <div class="text-left">
+                                    <span class="text-xs font-black text-emerald-600 uppercase">✓ Breakdown Size Terlampir</span>
+                                    <p class="text-[11px] text-slate-500 font-bold" x-text="sizeFileMeta"></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" @click="$refs.sizeFileInput.click()" class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-700 cursor-pointer">Ganti</button>
+                                <button type="button" @click="removeSizePhoto()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer">
+                                    <i class="ph-bold ph-trash text-base"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
 
-            <!-- Row 3: Bahan / Fabric & Target Deadline (1 Baris - 2 Kolom) -->
+            <!-- Row 3: Bahan / Fabric & Target Deadline -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Dropdown Pencarian Bahan Otomatis dari DB (Persis Customer) -->
                 <div id="tour-create-fabric" class="relative" @click.outside="fabricDropdownOpen = false">
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">
                         Bahan / Fabric <span class="text-rose-500">*</span>
@@ -230,14 +254,13 @@
                             placeholder="Ketik nama bahan (cth: Ntech / Milano)..."
                             required
                             autocomplete="off"
-                            class="w-full pl-4 pr-9 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50"
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50"
                         />
                         <div class="absolute right-3 top-3 text-slate-400 pointer-events-none">
                             <i class="ph-bold ph-magnifying-glass"></i>
                         </div>
                     </div>
 
-                    <!-- Dropdown Hasil Pencarian Bahan -->
                     <div
                         x-show="fabricDropdownOpen && fabricItems.length > 0"
                         x-cloak
@@ -250,18 +273,13 @@
                                 :class="fabricHighlightIndex === index ? 'bg-indigo-50 text-indigo-900 font-black' : 'text-slate-800'"
                                 class="px-4 py-2.5 cursor-pointer flex items-center justify-between text-xs transition-colors"
                             >
-                                <div>
-                                    <span class="block text-xs font-black" x-text="item.name"></span>
-                                    <span class="text-[10px] text-slate-400" x-text="item.gramasi ? item.gramasi : ''"></span>
-                                </div>
-                                <i class="ph-bold ph-arrow-bend-down-left text-slate-400" x-show="fabricHighlightIndex === index"></i>
+                                <span class="block text-xs font-black" x-text="item.name"></span>
                             </div>
                         </template>
                     </div>
                 </div>
 
-                <!-- Target Deadline (Order Out) -->
-                <div id="tour-create-deadline">
+                <div>
                     <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">
                         Target Deadline (Order Out) <span class="text-rose-500">*</span>
                     </label>
@@ -274,30 +292,30 @@
                 </div>
             </div>
 
-            <!-- Row 4: Tipe Pesanan (Baris Tersendiri - Colspan Penuh) -->
-            <div id="tour-create-type">
+            <!-- Row 4: Tipe Pesanan -->
+            <div>
                 <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">Tipe Pesanan</label>
                 <input
                     type="text"
                     x-model="form.order_type"
                     placeholder="Misal : Atasan Fullprint"
-                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50 placeholder:font-normal placeholder:text-slate-400"
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-sm bg-slate-50/50"
                 />
             </div>
 
             <!-- Row 5: Deskripsi / Catatan -->
-            <div id="tour-create-notes">
+            <div>
                 <label class="block text-xs font-black uppercase text-slate-700 mb-1.5">Deskripsi & Instruksi Pengerjaan (Opsional)</label>
                 <textarea
                     x-model="form.notes"
                     rows="3"
-                    placeholder="Contoh: Kerah V-Neck merah, list ijo ...dsb."
-                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-xs bg-slate-50/50 placeholder:font-normal placeholder:text-slate-400"
+                    placeholder="Contoh: Kerah V-Neck merah..."
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-black outline-none font-bold text-xs bg-slate-50/50"
                 ></textarea>
             </div>
 
-            <!-- Row 6: Foto Form SO Fisik & QR Camera P2P -->
-            <div id="tour-create-photo" class="p-4 bg-slate-50 rounded-2xl border border-slate-300">
+            <!-- Row 6: Foto Form SO Fisik -->
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-300">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
                         <i class="ph-bold ph-camera text-indigo-600 text-base"></i> Foto Formulir SO Fisik (Ttd Customer)
@@ -313,7 +331,6 @@
                 </div>
 
                 <div
-                    @paste.window="handlePaste($event)"
                     @click="$refs.fileInput.click()"
                     class="relative border-2 border-dashed rounded-xl p-4 transition-all flex flex-col items-center justify-center text-center cursor-pointer bg-white"
                     :class="spkPreview ? 'border-emerald-400 bg-emerald-50/20' : 'border-slate-300 hover:border-slate-400'"
@@ -321,32 +338,21 @@
                     <input type="file" x-ref="fileInput" @change="handleFileInput($event)" accept="image/*" class="hidden" />
 
                     <template x-if="!spkPreview">
-                        <div class="py-3 flex flex-col items-center">
-                            <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-1.5">
-                                <i class="ph-bold ph-image text-2xl"></i>
-                            </div>
-                            <p class="text-xs font-black text-slate-800">
-                                Klik upload file, atau <span class="text-indigo-600 underline">Paste (Ctrl + V)</span> dari WhatsApp Web
-                            </p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Foto teroptimasi (&le; 250 KB)</p>
+                        <div class="py-2 flex flex-col items-center">
+                            <i class="ph-bold ph-image text-2xl text-indigo-600 mb-1"></i>
+                            <p class="text-xs font-black text-slate-800">Klik untuk upload foto lembar SO fisik</p>
                         </div>
                     </template>
 
                     <template x-if="spkPreview">
                         <div class="w-full flex items-center justify-between gap-4" @click.stop>
                             <div class="flex items-center gap-3">
-                                <img :src="spkPreview" class="w-14 h-14 object-cover rounded-xl border border-slate-300" />
-                                <div class="text-left">
-                                    <span class="text-xs font-black text-emerald-600 uppercase">✓ Terkompresi WebP</span>
-                                    <p class="text-[11px] text-slate-500 font-bold" x-text="fileMeta"></p>
-                                </div>
+                                <img :src="spkPreview" class="w-12 h-12 object-cover rounded-xl border border-slate-300" />
+                                <span class="text-xs font-black text-emerald-600">✓ SPK Terlampir</span>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button type="button" @click="$refs.fileInput.click()" class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-700">Ganti</button>
-                                <button type="button" @click="removePhoto()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg">
-                                    <i class="ph-bold ph-trash text-base"></i>
-                                </button>
-                            </div>
+                            <button type="button" @click="removePhoto()" class="p-1 text-rose-600 hover:bg-rose-50 rounded-lg">
+                                <i class="ph-bold ph-trash text-base"></i>
+                            </button>
                         </div>
                     </template>
                 </div>
@@ -357,144 +363,63 @@
                 <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
                     <i class="ph-bold ph-shield-check text-emerald-600"></i> Disimpan sebagai arsip digital
                 </span>
-                <button
-                    id="tour-create-submit"
-                    type="submit"
-                    :disabled="isSubmitting"
-                    class="px-6 py-2.5 rounded-xl bg-black hover:bg-slate-800 text-white font-black text-xs shadow-md cursor-pointer flex items-center gap-2"
-                >
-                    <i class="ph-bold ph-paper-plane-tilt text-base"></i>
-                    <span x-text="isSubmitting ? 'Menyimpan...' : 'Simpan & Kirim ke Ka Prod'"></span>
-                </button>
+                
+                <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        class="px-6 py-2.5 rounded-xl bg-red-800 hover:bg-slate-800 text-white font-black text-xs shadow-md cursor-pointer flex items-center gap-2"
+                    >
+                        <i class="ph-bold ph-arrow-arc-left text-base"></i>
+                        <a href="{{ route('orders.index') }}" >
+                            Cancel
+                        </a>
+                    </button>
+                    <button
+                        type="submit"
+                        :disabled="isSubmitting"
+                        class="px-6 py-2.5 rounded-xl bg-black hover:bg-slate-800 text-white font-black text-xs shadow-md cursor-pointer flex items-center gap-2"
+                    >
+                        <i class="ph-bold ph-paper-plane-tilt text-base"></i>
+                        <span x-text="isSubmitting ? 'Menyimpan...' : 'Simpan & Kirim ke Ka Prod'"></span>
+                    </button>
+                </div>
             </div>
         </form>
     </div>
 
-    <!-- ==================== MODAL TAMBAH PELANGGAN CEPAT (LENGKAP DENGAN PIC) ==================== -->
-    <div
-        x-show="openCustomerModal"
-        x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
-        @keydown.escape.window="openCustomerModal = false"
-    >
-        <div
-            @click.outside="openCustomerModal = false"
-            class="bg-white rounded-3xl border border-slate-300 shadow-2xl w-full max-w-md overflow-hidden"
-        >
-            <div class="p-6">
-                <!-- Modal Header -->
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2 text-indigo-600">
-                        <i class="ph-bold ph-user-plus text-xl"></i>
-                        <h3 class="text-base font-black text-black">Tambah Pelanggan Baru</h3>
-                    </div>
-                    <button
-                        type="button"
-                        @click="openCustomerModal = false"
-                        class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-black transition-colors"
-                    >
-                        <i class="ph-bold ph-x text-lg"></i>
-                    </button>
+    <!-- MODAL TAMBAH PELANGGAN CEPAT -->
+    <div x-show="openCustomerModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div @click.outside="openCustomerModal = false" class="bg-white rounded-3xl border border-slate-300 shadow-2xl w-full max-w-md p-6">
+            <h3 class="text-base font-black text-black mb-4">Tambah Pelanggan Baru</h3>
+            <form @submit.prevent="submitQuickCustomer()" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">Nama Pelanggan *</label>
+                    <input type="text" x-model="newCustomer.name" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-bold text-sm bg-slate-50" />
                 </div>
-
-                <!-- Modal Form -->
-                <form @submit.prevent="submitQuickCustomer()" class="space-y-3.5">
-                    <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">
-                            Nama Pelanggan / Perusahaan <span class="text-rose-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            x-model="newCustomer.name"
-                            placeholder="Contoh: PT Semen Gresik "
-                            required
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 outline-none font-bold text-sm bg-slate-50/50"
-                        />
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">
-                            Nama PIC / Kontak Person (Opsional)
-                        </label>
-                        <input
-                            type="text"
-                            x-model="newCustomer.pic_name"
-                            placeholder="Contoh: Bpk. Bambang "
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 outline-none font-bold text-sm bg-slate-50/50"
-                        />
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">
-                            No. Telepon / HP / WA
-                        </label>
-                        <input
-                            type="text"
-                            x-model="newCustomer.phone"
-                            placeholder="Contoh: 081234567xx"
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 outline-none font-bold text-sm bg-slate-50/50"
-                        />
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-black uppercase text-slate-700 mb-1">
-                            Alamat Lengkap
-                        </label>
-                        <textarea
-                            x-model="newCustomer.address"
-                            rows="2"
-                            placeholder="Masukkan alamat kantor / kirim..."
-                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-600 outline-none font-bold text-xs bg-slate-50/50"
-                        ></textarea>
-                    </div>
-
-                    <div class="pt-3 flex items-center justify-end gap-2">
-                        <button
-                            type="button"
-                            @click="openCustomerModal = false"
-                            class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
-                        >
-                            Batal
-                        </button>
-                        <button
-                            type="submit"
-                            :disabled="savingCustomer"
-                            class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-md transition-colors flex items-center gap-1.5 cursor-pointer"
-                        >
-                            <i class="ph-bold ph-floppy-disk text-base"></i>
-                            <span x-text="savingCustomer ? 'Menyimpan...' : 'Simpan Pelanggan'"></span>
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div>
+                    <label class="block text-xs font-black uppercase text-slate-700 mb-1">PIC (Opsional)</label>
+                    <input type="text" x-model="newCustomer.pic_name" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-bold text-sm bg-slate-50" />
+                </div>
+                <div class="pt-3 flex justify-end gap-2">
+                    <button type="button" @click="openCustomerModal = false" class="px-4 py-2 bg-slate-100 rounded-xl font-bold text-xs">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 text-white font-black rounded-xl text-xs">Simpan</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- MODAL QR CODE P2P HP CAMERA -->
+    <!-- MODAL QR CODE P2P -->
     <div x-show="openQrModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
         <div @click.outside="openQrModal = false" class="bg-white rounded-3xl border border-slate-300 shadow-2xl w-full max-w-sm p-6 text-center">
             <h3 class="text-sm font-black text-black">Foto Lembar SO dari HP</h3>
-            <p class="text-xs text-green-500 mt-1">Scan QR code ini langsung dari kamera smartphone:</p>
-            
             <div class="my-4 p-4 bg-slate-50 border-2 border-dashed border-indigo-200 rounded-2xl flex flex-col items-center justify-center">
                 <div id="qrcodeCanvas" class="p-2 bg-white rounded-xl shadow-xs"></div>
                 <span class="mt-2 text-xs font-black text-indigo-700" x-text="'Kode Sesi: ' + sessionToken"></span>
             </div>
-
             <button type="button" @click="openQrModal = false" class="w-full py-2 bg-slate-100 rounded-xl text-xs font-black text-slate-700">Tutup</button>
         </div>
     </div>
 </div>
-
-<!-- TOMBOL BANTUAN "?" MELAYANG ORANYE BERDENYUT DI POJOK KANAN BAWAH -->
-<button 
-    type="button" 
-    onclick="jalankanTourOrderCreate()" 
-    title="Panduan Input Sales Order"
-    class="btn-pulse-orange fixed bottom-6 right-6 z-[9999] w-11 h-11 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-black text-lg shadow-lg flex items-center justify-center cursor-pointer transition-colors"
->
-    ?
-</button>
 
 <script>
 function jalankanTourOrderCreate() {
@@ -616,7 +541,9 @@ function orderForm() {
         savingCustomer: false,
         isSubmitting: false,
         spkPreview: null,
+        sizePreview: null,
         fileMeta: '',
+        sizeFileMeta: '',
         sessionToken: 'SO' + Math.random().toString(36).substring(2, 7).toUpperCase(),
         peer: null,
 
@@ -649,6 +576,51 @@ function orderForm() {
             target_deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             notes: "",
             spk_photo_base64: null,
+        },
+
+        // Handler Paste Khusus Kotak Size
+        handleSizePaste(e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.type.includes('image')) {
+                    this.compressSize(item.getAsFile());
+                    break;
+                }
+            }
+        },
+
+        handleSizeFileInput(e) {
+            const file = e.target.files[0];
+            if (file) this.compressSize(file);
+        },
+
+        compressSize(file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const max = 1400;
+                    let w = img.width, h = img.height;
+                    if (w > h && w > max) { h = (h * max) / w; w = max; }
+                    else if (h > max) { w = (w * max) / h; h = max; }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+                    const webpData = canvas.toDataURL('image/webp', 0.8);
+                    this.sizePreview = webpData;
+                    this.form.size_photo_base64 = webpData;
+                    this.sizeFileMeta = `${(file.size / 1024).toFixed(0)} KB → WebP`;
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        },
+
+        removeSizePhoto() {
+            this.sizePreview = null;
+            this.form.size_photo_base64 = null;
+            this.$refs.sizeFileInput.value = '';
         },
 
         // Search API Bahan (Mirip Customer)

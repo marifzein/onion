@@ -7,9 +7,6 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    /**
-     * Helper untuk memformat list order menjadi array terstruktur
-     */
     private function getFormattedOrders($cabangId)
     {
         return Order::with(['customer', 'stationProgress'])
@@ -41,13 +38,20 @@ class DashboardController extends Controller
                 $divColor = $colorMap[$order->current_status] ?? '#6366f1';
 
                 $currentJobMap = [
-                    'kaprod'    => 'Review kesiapan spek kain, deadline & ACC produksi naik meja potong.',
-                    'bahan'     => 'Penggelaran kain dan pemotongan pola badan sesuai size breakdown.',
-                    'print'     => 'Proses transfer cetak kertas sublim & pengepresan roll kain jersey.',
-                    'jahit'     => 'Proses assembling badan, jahit obras, kerah rib & overdeck lengan.',
-                    'finishing' => 'Pemasangan label size leher & proses setrika uap sebelum QC.',
-                    'qc'        => 'Pemeriksaan detail jahitan, ketajaman cetak, dan kelengkapan setelan.',
-                    'selesai'   => 'Pesanan telah selesai dipacking rapi dan siap diserahkan ke pelanggan.',
+                    'kaprod'    => '',
+                    'bahan'     => '',
+                    'print'     => '',
+                    'jahit'     => '',
+                    'finishing' => '',
+                    'qc'        => '',
+                    'selesai'   => '',
+                    // 'kaprod'    => 'Review kesiapan spek kain, deadline & ACC produksi naik meja potong.',
+                    // 'bahan'     => 'Penggelaran kain dan pemotongan pola badan sesuai size breakdown.',
+                    // 'print'     => 'Proses transfer cetak kertas sublim & pengepresan roll kain jersey.',
+                    // 'jahit'     => 'Proses assembling badan, jahit obras, kerah rib & overdeck lengan.',
+                    // 'finishing' => 'Pemasangan label size leher & proses setrika uap sebelum QC.',
+                    // 'qc'        => 'Pemeriksaan detail jahitan, ketajaman cetak, dan kelengkapan setelan.',
+                    // 'selesai'   => 'Pesanan telah selesai dipacking rapi dan siap diserahkan ke pelanggan.',
                 ];
 
                 $activeProgress = $order->stationProgress->firstWhere('division', $order->current_status);
@@ -65,6 +69,7 @@ class DashboardController extends Controller
                     'id'                => $order->id,
                     'so'                => $order->no_so,
                     'customer'          => $order->customer->name ?? $order->customer_name,
+                    'order_title'       => $order->order_title ?? '-', // <-- TAMBAHKAN INI
                     'type'              => $order->order_type ?? 'Atasan Fullprint',
                     'fabric'            => $order->fabric_type ?? '-',
                     'order_in'          => $order->created_at->translatedFormat('d F Y'),
@@ -80,6 +85,7 @@ class DashboardController extends Controller
                     'progress_pcs'      => "{$completedQty} / {$order->qty} pcs",
                     'progress_percent'  => $percent,
                     'spk_image'         => $order->spk_photo_path ? asset('storage/' . $order->spk_photo_path) : null,
+                    'size_image'        => $order->size_photo_path ? asset('storage/' . $order->size_photo_path) : null,
                     'step_active'       => $stepActive,
                 ];
             });
@@ -95,9 +101,6 @@ class DashboardController extends Controller
         return view('dashboard.monitoring', compact('orders'));
     }
 
-    /**
-     * Endpoint API JSON untuk Real-Time Polling 5 Detik
-     */
     public function getMonitoringData(Request $request)
     {
         $user = auth()->user();

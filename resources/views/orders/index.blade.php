@@ -127,7 +127,8 @@
                     <th class="py-3 px-3">Bahan & Qty</th>
                     <th id="tour-col-so-deadline" class="py-3 px-3">Deadline (Out)</th>
                     <th id="tour-col-so-status" class="py-3 px-3 text-center">Status</th>
-                    <th id="tour-col-so-finish" class="py-3 px-3 text-center w-28">Aksi Selesai</th>
+                    <th class="py-3 px-3 text-center w-20">Edit</th>
+                    <th id="tour-col-so-finish" class="py-3 px-3 text-center w-28">Selesai</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-200 text-sm font-medium">
@@ -177,7 +178,12 @@
                             </span>
                         @endif
                     </td>
-
+                    
+                    <td class="py-3 px-3 text-center">
+                        <a href="{{ route('orders.edit', $order->id) }}" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 inline-flex items-center justify-center text-slate-700 transition-colors" title="Edit Sales Order">
+                            <i class="ph-bold ph-pencil-simple text-sm"></i>
+                        </a>
+                    </td>
                     <!-- Kolom Checkbox Selesai (Closed) -->
                     <td class="py-3 px-3 text-center" @if($loop->first) id="tour-first-so-check" @endif>
                         <div class="flex items-center justify-center">
