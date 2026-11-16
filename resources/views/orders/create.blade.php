@@ -781,11 +781,22 @@ function orderForm() {
 
         renderQrCode() {
             this.$nextTick(() => {
-                const container = document.getElementById("qrcodeCanvas");
-                if (container) {
-                    container.innerHTML = "";
-                    const url = `${window.location.origin}/admin_input_order.html?spk_peer=${this.sessionToken}`;
-                    new QRCode(container, { text: url, width: 160, height: 160 });
+                const qrContainer = document.getElementById("qrcodeCanvas");
+                if (qrContainer) {
+                    qrContainer.innerHTML = "";
+                    
+                    // Gunakan origin dan route Laravel live yang aktif (onion.fipman.com/orders/create)
+                    const baseUrl = "{{ route('orders.create') }}"; 
+                    const url = `${baseUrl}?spk_peer=${this.sessionToken}`;
+
+                    new QRCode(qrContainer, {
+                        text: url,
+                        width: 170,
+                        height: 170,
+                        colorDark: "#0f172a",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M,
+                    });
                 }
             });
         },
