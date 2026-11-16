@@ -18,6 +18,9 @@ Route::middleware(['guest'])->group(function () {
 // Logout Route
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// scan qrcode kamera hp
+Route::get('/orders/mobile-capture', [OrderController::class, 'mobileCapture'])->name('orders.mobile_capture');
+
 // Protected Routes (Harus Login)
 Route::middleware(['auth'])->group(function () {
     Route::get('/', function () {
@@ -58,8 +61,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Sales Orders
     Route::resource('orders', OrderController::class);
-    // scan qrcode kamera hp
-    Route::get('/orders/mobile-capture', [OrderController::class, 'mobileCapture'])->name('orders.mobile_capture');
+    
 
     Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
     Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
