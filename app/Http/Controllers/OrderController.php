@@ -11,8 +11,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+
+
 class OrderController extends Controller
 {
+    public function mobileCapture(Request $request)
+    {
+        // Halaman ini khusus diakses dari HP via QR Code tanpa perlu login
+        return view('orders.mobile_capture');
+    }
+
     public function index()
     {
         $orders = Order::with(['cabang', 'customer'])

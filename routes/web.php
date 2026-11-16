@@ -58,6 +58,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Sales Orders
     Route::resource('orders', OrderController::class);
+    // scan qrcode kamera hp
+    Route::get('/orders/mobile-capture', [OrderController::class, 'mobileCapture'])->name('orders.mobile_capture');
 
     Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
     Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');

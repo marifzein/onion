@@ -785,8 +785,8 @@ function orderForm() {
                 if (qrContainer) {
                     qrContainer.innerHTML = "";
                     
-                    // Gunakan origin dan route Laravel live yang aktif (onion.fipman.com/orders/create)
-                    const baseUrl = "{{ route('orders.create') }}"; 
+                    // Arahkan QR code langsung ke halaman khusus mobile capture tanpa login
+                    const baseUrl = "{{ route('orders.mobile_capture') }}"; 
                     const url = `${baseUrl}?spk_peer=${this.sessionToken}`;
 
                     new QRCode(qrContainer, {
