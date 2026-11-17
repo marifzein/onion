@@ -6,6 +6,9 @@
     <title>Jepret SPK - ONION CREATIVE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <!-- Tambahkan CDN Phosphor Icons di sini -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-between p-5 text-center font-sans">
     
