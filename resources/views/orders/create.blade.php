@@ -226,7 +226,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <button type="button" @click="$refs.sizeFileInput.click()" class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-700 cursor-pointer">Ganti</button>
-                                <button type="button" @click="removeSizePhoto()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer">
+                                <button type="button" @click.stop="removeSizePhoto()" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer">
                                     <i class="ph-bold ph-trash text-base"></i>
                                 </button>
                             </div>
