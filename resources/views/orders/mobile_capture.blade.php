@@ -2,49 +2,47 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ambil Gambar - ONION CREATIVE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jepret SPK - ONION CREATIVE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <!-- Tambahkan CDN Phosphor Icons di sini -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-slate-950 text-white h-screen w-screen overflow-hidden flex flex-col justify-between items-center p-4 text-center font-sans select-none">    
-    <!-- Header Minimalis -->
+<body class="bg-slate-950 text-white h-[100dvh] w-screen overflow-hidden flex flex-col justify-between items-center p-3 text-center font-sans select-none">
+    
+    <!-- Header Sangat Kompak -->
     <div class="shrink-0 pt-1">
-        <div id="statusBadge" class="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 font-black rounded-full text-[11px] uppercase mb-1.5 tracking-wider">
+        <div id="statusBadge" class="inline-block px-2 py-0.5 bg-amber-500/20 text-amber-400 font-black rounded-full text-[9px] uppercase mb-0.5 tracking-wider">
             ● Menghubungkan ke PC...
         </div>
-        <h1 class="text-lg font-black uppercase tracking-tight text-white">Onion Creative</h1>
-        <p class="text-[11px] text-slate-400">Pindai & Kirim SPK Instan</p>
+        <h1 class="text-sm font-black uppercase tracking-tight text-white leading-none">Onion Creative</h1>
+        <p class="text-[9px] text-slate-400">Pindai & Kirim SPK Instan</p>
     </div>
 
-    <!-- Area Preview / Panduan -->
-    <div class="w-full max-w-xs flex-1 max-h-[46vh] border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-2.5 bg-slate-900 shadow-inner overflow-hidden relative my-2">
+    <!-- Area Preview (Fleksibel & Pas di Layar) -->
+    <div class="w-full max-w-xs flex-1 max-h-[40vh] border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-2 bg-slate-900 shadow-inner overflow-hidden relative my-1">
         <img id="mobileImgPreview" class="hidden w-full h-full object-contain rounded-xl" />
-        <div id="mobilePlaceholder" class="text-slate-400 text-xs flex flex-col items-center justify-center p-2 space-y-1.5">
-            <div class="w-12 h-12 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center">
-                <i class="ph-bold ph-camera text-2xl text-slate-400"></i>
+        <div id="mobilePlaceholder" class="text-slate-400 text-xs flex flex-col items-center justify-center p-1.5 space-y-1">
+            <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center">
+                <i class="ph-bold ph-camera text-xl text-slate-400"></i>
             </div>
-            <span class="font-bold text-slate-300 text-xs">Siap Mengambil Foto SPK</span>
+            <span class="font-bold text-slate-300 text-[11px]">Siap Mengambil Foto SPK</span>
             <span class="text-[9px] text-slate-500">Tekan tombol di bawah untuk membuka kamera</span>
         </div>
     </div>
 
-    <!-- Tombol Aksi Utama -->
-    <div class="w-full max-w-xs shrink-0 space-y-2 pb-2">
-        <!-- Input file tersembunyi dengan capture environment agar langsung buka kamera belakang HP -->
+    <!-- Tombol Aksi Utama (Dijamin Muncul Sepenuhnya Tanpa Ngumpet) -->
+    <div class="w-full max-w-xs shrink-0 space-y-1.5 pb-2">
         <input type="file" id="mobileCamInput" accept="image/*" capture="environment" class="hidden" />
         
-        <button id="btnBukaKamera" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black rounded-2xl shadow-lg text-base cursor-pointer transition-all flex items-center justify-center gap-2">
-            <span><i class="ph ph-camera"></i> Buka Kamera </span>
-            {{-- 📸 --}}
+        <button id="btnBukaKamera" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black rounded-xl shadow-md text-xs cursor-pointer transition-all flex items-center justify-center gap-2">
+            <i class="ph-bold ph-camera text-base"></i>
+            <span>Buka Kamera & Jepret</span>
         </button>
         
-        <button id="btnKirimPc" class="hidden w-full py-4 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black rounded-2xl shadow-lg text-base cursor-pointer transition-all flex items-center justify-center gap-2">
-            <span><i class="ph ph-paper-plane-tilt"></i> Kirim ke Layar PC</span>
-            {{-- 🚀 --}}
+        <button id="btnKirimPc" class="hidden w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black rounded-xl shadow-md text-xs cursor-pointer transition-all flex items-center justify-center gap-2">
+            <i class="ph-bold ph-paper-plane-tilt text-base"></i>
+            <span>Kirim ke Layar PC</span>
         </button>
     </div>
 
@@ -78,7 +76,7 @@
 
         setTimeout(() => {
             const badge = document.getElementById('statusBadge');
-            badge.className = "inline-block px-3 py-1 bg-emerald-500/20 text-emerald-400 font-black rounded-full text-[11px] uppercase mb-1.5 tracking-wider";
+            badge.className = "inline-block px-2 py-0.5 bg-emerald-500/20 text-emerald-400 font-black rounded-full text-[9px] uppercase mb-0.5 tracking-wider";
             badge.innerText = "● Terkoneksi ke PC";
         }, 1200);
 
@@ -111,9 +109,8 @@
                     prevImg.classList.remove('hidden');
                     document.getElementById('mobilePlaceholder').classList.add('hidden');
                     
-                    // Ubah teks tombol kamera jadi "Ulangi Jepret" & munculkan tombol kirim
-                    btnBukaKamera.innerText = "🔄 Ulangi Foto";
-                    btnBukaKamera.className = "w-full py-3 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-bold rounded-2xl text-sm cursor-pointer transition-all";
+                    btnBukaKamera.innerHTML = '<i class="ph-bold ph-arrow-counter-clockwise text-sm"></i> Ulangi Jepret';
+                    btnBukaKamera.className = "w-full py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-bold rounded-xl text-xs cursor-pointer transition-all flex items-center justify-center gap-1.5";
                     document.getElementById('btnKirimPc').classList.remove('hidden');
                 };
                 img.src = event.target.result;
@@ -136,7 +133,7 @@
                 setTimeout(() => {
                     alert("Sukses! Foto berhasil dikirim ke komputer.");
                     window.close();
-                }, 500);
+                }, 400);
             } else {
                 alert("Koneksi ke PC belum siap. Pastikan komputer masih membuka form input SO.");
             }
