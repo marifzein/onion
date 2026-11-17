@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jepret SPK - ONION CREATIVE</title>
+    <title>Foto SPK - ONION CREATIVE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -16,7 +16,7 @@
             ● Menghubungkan ke PC...
         </div>
         <h1 class="text-sm font-black uppercase tracking-tight text-white leading-none">Onion Creative</h1>
-        <p class="text-[9px] text-slate-400">Pindai & Kirim SPK Instan</p>
+        <p class="text-[9px] text-slate-400">Pindai & Kirim SPK secara Instan</p>
     </div>
 
     <!-- Area Preview (Fleksibel & Pas di Layar) -->
@@ -37,7 +37,7 @@
         
         <button id="btnBukaKamera" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black rounded-xl shadow-md text-xs cursor-pointer transition-all flex items-center justify-center gap-2">
             <i class="ph-bold ph-camera text-base"></i>
-            <span>Buka Kamera & Jepret</span>
+            <span>Buka Kamera & Foto</span>
         </button>
         
         <button id="btnKirimPc" class="hidden w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black rounded-xl shadow-md text-xs cursor-pointer transition-all flex items-center justify-center gap-2">
@@ -109,7 +109,7 @@
                     prevImg.classList.remove('hidden');
                     document.getElementById('mobilePlaceholder').classList.add('hidden');
                     
-                    btnBukaKamera.innerHTML = '<i class="ph-bold ph-arrow-counter-clockwise text-sm"></i> Ulangi Jepret';
+                    btnBukaKamera.innerHTML = '<i class="ph-bold ph-arrow-counter-clockwise text-sm"></i> Ulangi Foto';
                     btnBukaKamera.className = "w-full py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 font-bold rounded-xl text-xs cursor-pointer transition-all flex items-center justify-center gap-1.5";
                     document.getElementById('btnKirimPc').classList.remove('hidden');
                 };
