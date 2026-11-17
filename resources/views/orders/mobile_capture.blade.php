@@ -10,8 +10,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-between p-5 text-center font-sans">
-    
+<body class="bg-slate-950 text-white h-screen w-screen overflow-hidden flex flex-col justify-between items-center p-4 text-center font-sans select-none">    
     <!-- Header Minimalis -->
     <div class="shrink-0 pt-1">
         <div id="statusBadge" class="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 font-black rounded-full text-[11px] uppercase mb-1.5 tracking-wider">
