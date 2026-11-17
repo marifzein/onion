@@ -350,7 +350,7 @@
                                 <img :src="spkPreview" class="w-12 h-12 object-cover rounded-xl border border-slate-300" />
                                 <span class="text-xs font-black text-emerald-600">✓ SPK Terlampir</span>
                             </div>
-                            <button type="button" @click="removePhoto()" class="p-1 text-rose-600 hover:bg-rose-50 rounded-lg">
+                            <button type="button" @click.stop="removePhoto()" class="p-1 text-rose-600 hover:bg-rose-50 rounded-lg">
                                 <i class="ph-bold ph-trash text-base"></i>
                             </button>
                         </div>
