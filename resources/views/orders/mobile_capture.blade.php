@@ -39,11 +39,13 @@
         <input type="file" id="mobileCamInput" accept="image/*" capture="environment" class="hidden" />
         
         <button id="btnBukaKamera" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black rounded-2xl shadow-lg text-base cursor-pointer transition-all flex items-center justify-center gap-2">
-            <span>📸 Buka Kamera & Jepret</span>
+            <span><i class="ph ph-camera"></i> Buka Kamera </span>
+            {{-- 📸 --}}
         </button>
         
         <button id="btnKirimPc" class="hidden w-full py-4 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black rounded-2xl shadow-lg text-base cursor-pointer transition-all flex items-center justify-center gap-2">
-            <span>🚀 Kirim ke Layar PC</span>
+            <span><i class="ph ph-paper-plane-tilt"></i> Kirim ke Layar PC</span>
+            {{-- 🚀 --}}
         </button>
     </div>
 
